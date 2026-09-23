@@ -1,0 +1,32 @@
+services:
+  # Backend Express & Prisma Web Service
+  - type: web
+    name: ecommerce-backend-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: node dist/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ecommerce-postgres
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+
+databases:
+  # Managed PostgreSQL Database
+  - name: ecommerce-postgres
+    databaseName: ecommerce_db
+    user: postgres
+    plan: free

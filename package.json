@@ -1,0 +1,14 @@
+{
+  "name": "ecommerce-platform-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down",
+    "prisma:seed": "npm --prefix backend run prisma:seed"
+  }
+}
