@@ -47,7 +47,7 @@ export default async function HomePage() {
             </div>
             <div>
               <span className="font-bold block text-foreground">Free Next-Day Delivery</span>
-              <span className="text-muted-foreground text-[11px]">On orders exceeding $150</span>
+              <span className="text-muted-foreground text-[11px]">On orders exceeding ₹999</span>
             </div>
           </div>
 

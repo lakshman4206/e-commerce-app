@@ -15,7 +15,10 @@ const checkoutSchema = z.object({
     .min(1),
   address: z.string().min(5, "Please enter a valid shipping address."),
   phone: z.string().min(6, "Please enter a valid contact phone number."),
-  paymentMethod: z.enum(["CARD", "STRIPE", "COD"]).optional().default("CARD"),
+  paymentMethod: z
+    .enum(["CARD", "STRIPE", "COD", "RAZORPAY", "UPI", "WALLET", "NETBANKING"])
+    .optional()
+    .default("RAZORPAY"),
 });
 
 export async function POST(req: Request) {

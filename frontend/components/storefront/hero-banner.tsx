@@ -64,7 +64,7 @@ export function HeroBanner() {
         <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-xs text-muted-foreground pt-4 border-t border-border/40">
           <div className="flex items-center gap-1.5 font-medium text-foreground">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
-            <span>Stripe PCI-DSS Verified Gateway</span>
+            <span>Razorpay Verified 256-Bit Gateway</span>
           </div>
           <span>•</span>
           <div className="flex items-center gap-1.5 font-medium text-foreground">

@@ -59,7 +59,7 @@ export function Navbar({ user }: NavbarProps) {
           <Zap className="w-3.5 h-3.5 fill-current animate-pulse" />
           <span>SPRING MEGA DEAL:</span>
         </span>
-        <span>Up to 50% OFF Top Electronics &amp; Fashion + FREE Express Shipping over $150</span>
+        <span>Up to 50% OFF Top Electronics &amp; Fashion + FREE Express Shipping over ₹999</span>
         <span className="hidden md:inline-block font-mono bg-black/20 px-2 py-0.5 rounded text-[11px]">
           CODE: ECOMWEB50
         </span>
