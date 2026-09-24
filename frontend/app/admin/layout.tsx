@@ -40,7 +40,7 @@ export default async function AdminLayout({
                 ADMIN CONSOLE
               </span>
               <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">
-                E Comm Kart OS v1.0
+                E Com Web OS v1.0
               </span>
             </div>
           </div>

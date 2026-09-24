@@ -14,7 +14,7 @@ export function HeroBanner() {
         <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-bold text-foreground backdrop-blur-md mb-6 shadow-sm">
           <Sparkles className="w-3.5 h-3.5 text-orange-500 animate-pulse" />
           <span className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
-            Welcome to E Comm Kart — Season 2026 Mega Store
+            Welcome to E Com Web — Season 2026 Mega Store
           </span>
           <span className="bg-orange-500 text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full ml-1">
             50% OFF
@@ -25,7 +25,7 @@ export function HeroBanner() {
         <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-foreground leading-[1.12]">
           Shop Next-Gen Tech, Apparel &amp; Lifestyle at{" "}
           <span className="bg-gradient-to-r from-primary via-orange-500 to-amber-400 bg-clip-text text-transparent">
-            E Comm Kart.
+            E Com Web.
           </span>
         </h1>
 

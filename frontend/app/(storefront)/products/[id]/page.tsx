@@ -18,12 +18,12 @@ export async function generateMetadata({
 
   if (!product) {
     return {
-      title: "Product Not Found | E Comm Kart",
+      title: "Product Not Found | E Com Web",
     };
   }
 
   return {
-    title: `${product.title} | E Comm Kart Marketplace`,
+    title: `${product.title} | E Com Web Marketplace`,
     description: product.description.slice(0, 160),
   };
 }

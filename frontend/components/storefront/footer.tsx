@@ -54,9 +54,9 @@ export function Footer() {
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-primary via-orange-500 to-amber-500 text-primary-foreground flex items-center justify-center font-black text-xs shadow-sm">
-              ECK
+              ECW
             </div>
-            <span className="font-extrabold tracking-tight text-lg">E Comm Kart</span>
+            <span className="font-extrabold tracking-tight text-lg">E Com Web</span>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed">
             Curated electronics, lifestyle objects, and modern apparel. Designed with intention, manufactured with precision.
@@ -98,7 +98,7 @@ export function Footer() {
       </div>
 
       <div className="border-t border-border/40 py-6 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} E Comm Kart Inc. All rights reserved. Production-grade architecture.
+        © {new Date().getFullYear()} E Com Web Inc. All rights reserved. Production-grade architecture.
       </div>
     </footer>
   );

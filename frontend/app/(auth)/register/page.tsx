@@ -71,7 +71,7 @@ function RegisterForm() {
         throw new Error(data.error || "Registration failed");
       }
 
-      toast.success("Account created successfully! Signing you in...");
+      toast.success("Account created! Signing you in and redirecting...");
 
       // 2. Automatically log the customer in
       const signInResult = await signIn("credentials", {
@@ -82,18 +82,25 @@ function RegisterForm() {
 
       if (signInResult?.error) {
         toast.info("Account created. Please log in with your credentials.");
-        router.push("/login");
+        router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
         return;
       }
 
-      // 3. Redirect to destination (checkout if cart has items, else products)
-      const cartItemsCount = useCartStore.getState().items.length;
-      let targetUrl = callbackUrl;
-      if (!searchParams.get("callbackUrl") || callbackUrl === "/products" || callbackUrl === "/") {
+      // 3. Determine smart redirect:
+      //    - If there's an explicit callbackUrl (e.g. /checkout), always use it
+      //    - Otherwise, check cart and route accordingly
+      const rawCallback = searchParams.get("callbackUrl");
+      let targetUrl: string;
+
+      if (rawCallback && rawCallback !== "/" && rawCallback !== "/products") {
+        // Honour the original destination (e.g. /checkout)
+        targetUrl = rawCallback;
+      } else {
+        const cartItemsCount = useCartStore.getState().items.length;
         targetUrl = cartItemsCount > 0 ? "/checkout" : "/products";
       }
 
-      // Hard navigation to immediately pass session cookies to /checkout
+      // Hard navigation so Next.js server components see the fresh session cookie
       window.location.href = targetUrl;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Registration error";
@@ -113,11 +120,11 @@ function RegisterForm() {
         <div className="text-center space-y-2">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-primary via-orange-500 to-amber-500 text-primary-foreground font-black flex items-center justify-center text-xs shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
-              ECK
+              ECW
             </div>
             <div className="flex flex-col text-left">
               <span className="font-black text-xl tracking-tight bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-                E Comm Kart
+                E Com Web
               </span>
               <span className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold -mt-1">
                 Official Marketplace
@@ -233,7 +240,7 @@ function RegisterForm() {
             {loading ? (
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Creating your E Comm Kart account...</span>
+                <span>Creating your E Com Web account...</span>
               </div>
             ) : (
               <div className="flex items-center gap-2">
