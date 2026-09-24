@@ -87,10 +87,10 @@ export function Navbar({ user }: NavbarProps) {
             <div className="flex items-center gap-2">
               <Link
                 href="/orders"
-                className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-1 px-2 rounded-md hover:bg-muted transition"
+                className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-1 px-2.5 rounded-lg border border-border/60 hover:bg-muted transition"
               >
                 <User className="w-3.5 h-3.5" />
-                <span className="max-w-[100px] truncate">{user.name || "Orders"}</span>
+                <span className="max-w-[120px] truncate font-medium">{user.name || "My Orders"}</span>
               </Link>
               <Button
                 variant="ghost"
@@ -98,15 +98,20 @@ export function Navbar({ user }: NavbarProps) {
                 asChild
                 className="text-xs text-muted-foreground hover:text-destructive"
               >
-                <Link href="/api/auth/signout">
+                <Link href="/api/auth/signout" title="Sign Out">
                   <LogOut className="w-3.5 h-3.5" />
                 </Link>
               </Button>
             </div>
           ) : (
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/login">Sign In</Link>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" asChild className="text-xs font-medium">
+                <Link href="/login">Sign In</Link>
+              </Button>
+              <Button size="sm" asChild className="text-xs font-semibold hidden sm:inline-flex">
+                <Link href="/register">Sign Up</Link>
+              </Button>
+            </div>
           )}
 
           {/* Cart Drawer Trigger */}
