@@ -56,7 +56,7 @@ function LoginForm() {
 
       if (res?.error) {
         const err =
-          "Invalid email or password. If you are new to E Kart, please register your account below.";
+          "Invalid email or password. If you are new to E Comm Kart, please register your account below.";
         setErrorMessage(err);
         toast.error("Authentication failed. Please verify your credentials.");
         setLoading(false);
@@ -136,12 +136,12 @@ function LoginForm() {
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-primary to-orange-500 text-primary-foreground font-black flex items-center justify-center text-xl shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
-              E
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-primary via-orange-500 to-amber-500 text-primary-foreground font-black flex items-center justify-center text-xs shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
+              ECK
             </div>
             <div className="flex flex-col text-left">
               <span className="font-black text-xl tracking-tight bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-                E Kart
+                E Comm Kart
               </span>
               <span className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold -mt-1">
                 Security Gateway
@@ -293,11 +293,11 @@ function LoginForm() {
             {loading ? (
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Authenticating with E Kart...</span>
+                <span>Authenticating with E Comm Kart...</span>
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <span>Sign In to E Kart</span>
+                <span>Sign In to E Comm Kart</span>
                 <ArrowRight className="w-4 h-4" />
               </div>
             )}
@@ -376,7 +376,7 @@ function LoginForm() {
 
         {/* Footer Registration Link */}
         <div className="text-center text-xs text-muted-foreground pt-1">
-          New to E Kart?{" "}
+          New to E Comm Kart?{" "}
           <Link
             href={registerHref}
             className="font-bold text-primary hover:underline hover:text-orange-500 transition"

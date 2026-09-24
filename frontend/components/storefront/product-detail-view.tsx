@@ -200,7 +200,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
 
             <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-md text-foreground px-3 py-1 rounded-full text-xs font-semibold border border-border/80 flex items-center gap-1.5 shadow-sm">
               <Sparkles className="w-3.5 h-3.5 text-primary" />
-              <span>E Kart Verified Authentic</span>
+              <span>E Comm Kart Verified Authentic</span>
             </div>
           </div>
         </div>

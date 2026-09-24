@@ -61,7 +61,7 @@ export function Navbar({ user }: NavbarProps) {
         </span>
         <span>Up to 50% OFF Top Electronics &amp; Fashion + FREE Express Shipping over $150</span>
         <span className="hidden md:inline-block font-mono bg-black/20 px-2 py-0.5 rounded text-[11px]">
-          CODE: EKART50
+          CODE: ECOMMKART50
         </span>
       </div>
 
@@ -70,15 +70,15 @@ export function Navbar({ user }: NavbarProps) {
         {/* Brand Logo */}
         <div className="flex items-center gap-6 shrink-0">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-orange-500 flex items-center justify-center text-primary-foreground font-black tracking-tighter text-xl shadow-md group-hover:scale-105 transition-transform">
-              E
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-primary via-orange-500 to-amber-500 flex items-center justify-center text-primary-foreground font-black tracking-tight text-base shadow-md group-hover:scale-105 transition-transform">
+              ECK
             </div>
             <div className="flex flex-col">
-              <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-foreground via-foreground/90 to-primary bg-clip-text text-transparent">
-                E Kart
+              <span className="font-black text-xl tracking-tight bg-gradient-to-r from-foreground via-foreground/90 to-primary bg-clip-text text-transparent">
+                E Comm Kart
               </span>
               <span className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold -mt-1">
-                Storefront
+                Official Marketplace
               </span>
             </div>
           </Link>

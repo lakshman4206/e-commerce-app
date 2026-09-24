@@ -53,13 +53,13 @@ export function Footer() {
       <div className="container mx-auto py-12 px-4 sm:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-primary to-orange-500 text-primary-foreground flex items-center justify-center font-black text-base shadow-sm">
-              E
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-primary via-orange-500 to-amber-500 text-primary-foreground flex items-center justify-center font-black text-xs shadow-sm">
+              ECK
             </div>
-            <span className="font-extrabold tracking-tight text-lg">E Kart</span>
+            <span className="font-extrabold tracking-tight text-lg">E Comm Kart</span>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Curated objects and lifestyle electronics engineered for modern living. Designed with intention, manufactured with precision.
+            Curated electronics, lifestyle objects, and modern apparel. Designed with intention, manufactured with precision.
           </p>
         </div>
 
@@ -98,7 +98,7 @@ export function Footer() {
       </div>
 
       <div className="border-t border-border/40 py-6 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} E Kart Inc. All rights reserved. Production-grade architecture.
+        © {new Date().getFullYear()} E Comm Kart Inc. All rights reserved. Production-grade architecture.
       </div>
     </footer>
   );

@@ -106,7 +106,7 @@ export function CheckoutForm() {
     if (/^5[1-5]/.test(clean) || /^2[2-7]/.test(clean)) return { name: "Mastercard", color: "from-orange-600 to-rose-700", icon: "MC" };
     if (/^3[47]/.test(clean)) return { name: "Amex", color: "from-emerald-700 to-teal-900", icon: "AMEX" };
     if (/^6(?:011|5)/.test(clean)) return { name: "Discover", color: "from-amber-600 to-orange-700", icon: "DISC" };
-    return { name: "E Kart SafeCard", color: "from-slate-900 via-neutral-900 to-zinc-950", icon: "CARD" };
+    return { name: "E Comm Kart SafeCard", color: "from-slate-900 via-neutral-900 to-zinc-950", icon: "CARD" };
   };
 
   const cardBrand = getCardBrand(cardNumber);
@@ -141,14 +141,19 @@ export function CheckoutForm() {
     setPromoLoading(true);
     setTimeout(() => {
       const codeUpper = promoCode.trim().toUpperCase();
-      if (codeUpper === "EKART50" || codeUpper === "ECOMM50" || codeUpper === "AESTHETE50") {
-        setAppliedDiscount({ code: "EKART50", percent: 50 });
+      if (
+        codeUpper === "ECOMMKART50" ||
+        codeUpper === "EKART50" ||
+        codeUpper === "ECOMM50" ||
+        codeUpper === "AESTHETE50"
+      ) {
+        setAppliedDiscount({ code: "ECOMMKART50", percent: 50 });
         toast.success("50% Mega Promo applied successfully!");
       } else if (codeUpper === "SAVE10" || codeUpper === "WELCOME10") {
         setAppliedDiscount({ code: "SAVE10", amount: 10 });
         toast.success("$10 Discount applied!");
       } else {
-        toast.error("Invalid coupon code. Try 'EKART50' for 50% off!");
+        toast.error("Invalid coupon code. Try 'ECOMMKART50' for 50% off!");
       }
       setPromoLoading(false);
     }, 400);
@@ -823,7 +828,7 @@ export function CheckoutForm() {
           <div className="rounded-2xl border border-border bg-muted/20 p-4 text-xs space-y-2">
             <div className="flex items-center gap-2 font-bold text-foreground">
               <Shield className="w-4 h-4 text-primary" />
-              <span>E Kart Buyer Protection</span>
+              <span>E Comm Kart Buyer Protection</span>
             </div>
             <p className="text-muted-foreground leading-relaxed text-[11px]">
               Every purchase is protected by our 30-day money-back guarantee and verified merchant escrow.

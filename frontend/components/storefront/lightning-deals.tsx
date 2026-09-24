@@ -48,7 +48,7 @@ export function LightningDealsSection() {
   const deals: LightningDealProduct[] = [
     {
       id: "deal_1",
-      title: "E Kart Studio Pro Wireless ANC Headphones",
+      title: "E Comm Kart Studio Pro Wireless ANC Headphones",
       price: 199.99,
       originalPrice: 349.99,
       image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
