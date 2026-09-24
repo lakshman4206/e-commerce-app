@@ -1,7 +1,6 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import GitHub from "next-auth/providers/github";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { loginSchema } from "@/lib/validations/auth";
@@ -105,10 +104,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    }),
-    GitHub({
-      clientId: process.env.GITHUB_CLIENT_ID,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
     }),
   ],
   callbacks: {
@@ -121,10 +123,34 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return baseUrl;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account, profile }) {
+      // On first sign-in (credentials or OAuth)
       if (user) {
         token.id = user.id as string;
         token.role = (user.role as Role) || "CUSTOMER";
+      }
+      // For Google OAuth, auto-provision user in DB
+      if (account?.provider === "google" && profile?.email) {
+        try {
+          let dbUser = await prisma.user.findUnique({
+            where: { email: profile.email },
+          });
+          if (!dbUser) {
+            dbUser = await prisma.user.create({
+              data: {
+                name: profile.name || "Customer",
+                email: profile.email,
+                role: Role.CUSTOMER,
+              },
+            });
+          }
+          token.id = dbUser.id;
+          token.role = dbUser.role;
+        } catch (e) {
+          console.warn("[AUTH] Could not sync Google user to DB:", e);
+          token.id = token.sub || `google_${Date.now()}`;
+          token.role = "CUSTOMER";
+        }
       }
       return token;
     },
