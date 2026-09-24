@@ -11,9 +11,20 @@ export async function getProducts(options?: {
   sortBy?: "newest" | "price-asc" | "price-desc";
   featuredOnly?: boolean;
   includeArchived?: boolean;
+  limit?: number;
+  minPrice?: number;
+  maxPrice?: number;
 }) {
-  const { categoryId, search, sortBy = "newest", featuredOnly, includeArchived = false } =
-    options || {};
+  const {
+    categoryId,
+    search,
+    sortBy = "newest",
+    featuredOnly,
+    includeArchived = false,
+    limit,
+    minPrice,
+    maxPrice,
+  } = options || {};
 
   const whereClause: any = {};
 
@@ -29,6 +40,12 @@ export async function getProducts(options?: {
     whereClause.isFeatured = true;
   }
 
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    whereClause.price = {};
+    if (minPrice !== undefined) whereClause.price.gte = minPrice;
+    if (maxPrice !== undefined) whereClause.price.lte = maxPrice;
+  }
+
   if (search) {
     whereClause.OR = [
       { title: { contains: search, mode: "insensitive" } },
@@ -42,6 +59,7 @@ export async function getProducts(options?: {
 
   const products = await prisma.product.findMany({
     where: whereClause,
+    take: limit,
     include: {
       category: {
         select: { id: true, name: true, slug: true },
