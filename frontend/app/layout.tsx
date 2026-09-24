@@ -18,8 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark scroll-smooth">
-      <body className={`${inter.className} min-h-screen bg-background text-foreground flex flex-col`}>
+    <html lang="en" className="scroll-smooth">
+      <body className={`${inter.className} min-h-screen bg-slate-50 text-slate-900 flex flex-col`}>
         {children}
         <CartDrawer />
         <Toaster position="bottom-right" richColors />
