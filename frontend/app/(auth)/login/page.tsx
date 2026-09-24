@@ -106,8 +106,8 @@ function LoginForm() {
     }
   };
 
-  const handleSocialMock = (provider: string) => {
-    toast.info(`${provider} OAuth is configured for production. Using fast credentials sign-in.`);
+  const handleSocialLogin = (provider: "google" | "github") => {
+    signIn(provider, { callbackUrl: callbackUrl === "/" ? "/products" : callbackUrl });
   };
 
   const handleForgotPassword = (e: React.FormEvent) => {
@@ -314,7 +314,7 @@ function LoginForm() {
         <div className="grid grid-cols-3 gap-2.5">
           <button
             type="button"
-            onClick={() => handleSocialMock("Google")}
+            onClick={() => handleSocialLogin("google")}
             className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-border bg-background hover:bg-muted/40 text-xs font-semibold transition"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -340,7 +340,7 @@ function LoginForm() {
 
           <button
             type="button"
-            onClick={() => handleSocialMock("GitHub")}
+            onClick={() => handleSocialLogin("github")}
             className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-border bg-background hover:bg-muted/40 text-xs font-semibold transition"
           >
             <svg className="w-4 h-4 fill-foreground" viewBox="0 0 24 24">
@@ -351,7 +351,7 @@ function LoginForm() {
 
           <button
             type="button"
-            onClick={() => handleSocialMock("Passkey")}
+            onClick={() => toast.info("Passkey support coming soon!")}
             className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-border bg-background hover:bg-muted/40 text-xs font-semibold transition"
           >
             <KeyRound className="w-4 h-4 text-amber-500" />
