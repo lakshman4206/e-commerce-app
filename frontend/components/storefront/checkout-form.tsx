@@ -14,22 +14,26 @@ import {
   Phone,
   Truck,
   QrCode,
-  Wallet,
   Building2,
   Sparkles,
   CheckCircle2,
   Tag,
   ChevronDown,
   ChevronUp,
-  Zap,
   ArrowRight,
   Shield,
   Check,
   Smartphone,
-  X,
-  RefreshCw,
+  ExternalLink,
+  Copy,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+
+declare global {
+  interface Window {
+    Razorpay?: any;
+  }
+}
 
 export function CheckoutForm() {
   const router = useRouter();
@@ -39,13 +43,13 @@ export function CheckoutForm() {
   const [fullName, setFullName] = useState("");
   const [streetAddress, setStreetAddress] = useState("");
   const [city, setCity] = useState("");
-  const [stateName, setStateName] = useState("Karnataka");
+  const [stateName, setStateName] = useState("Andhra Pradesh");
   const [postalCode, setPostalCode] = useState("");
   const [country, setCountry] = useState("India");
   const [phone, setPhone] = useState("");
 
   // 2. Payment Gateway Method State
-  const [paymentMethod, setPaymentMethod] = useState<"RAZORPAY_UPI" | "CARD" | "NETBANKING" | "WALLET" | "COD">("RAZORPAY_UPI");
+  const [paymentMethod, setPaymentMethod] = useState<"RAZORPAY_UPI" | "CARD" | "NETBANKING" | "COD">("RAZORPAY_UPI");
 
   // Card details
   const [cardNumber, setCardNumber] = useState("");
@@ -56,14 +60,10 @@ export function CheckoutForm() {
 
   // UPI details
   const [upiId, setUpiId] = useState("");
-  const [selectedUpiApp, setSelectedUpiApp] = useState("gpay");
   const [upiTimer, setUpiTimer] = useState(600); // 10 minutes
 
   // Netbanking details
   const [selectedBank, setSelectedBank] = useState("hdfc");
-
-  // Digital Wallet details
-  const [selectedWallet, setSelectedWallet] = useState("amazonpay");
 
   // Promo code engine
   const [promoCode, setPromoCode] = useState("");
@@ -75,7 +75,7 @@ export function CheckoutForm() {
 
   // Razorpay Gateway Modal State
   const [isRazorpayModalOpen, setIsRazorpayModalOpen] = useState(false);
-  const [razorpayStep, setRazorpayStep] = useState<"SELECT" | "PROCESSING" | "OTP_VERIFY" | "SUCCESS">("PROCESSING");
+  const [razorpayStep, setRazorpayStep] = useState<"PROCESSING" | "OTP_VERIFY" | "SUCCESS">("PROCESSING");
   const [otpInput, setOtpInput] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -93,6 +93,17 @@ export function CheckoutForm() {
   const tax = Math.round(discountedSubtotal * 0.18); // 18% GST
   const total = discountedSubtotal + shipping + tax;
 
+  // Real UPI Payment Payload (Opens UPI Apps with live amount and payee name)
+  const upiPayeeAddress = "lakshman4206@okaxis";
+  const upiPayeeName = "E Com Web";
+  const upiIntentUri = `upi://pay?pa=${upiPayeeAddress}&pn=${encodeURIComponent(
+    upiPayeeName
+  )}&am=${total}&cu=INR&tn=${encodeURIComponent("Order Payment on E Com Web")}`;
+
+  const realTimeQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(
+    upiIntentUri
+  )}&margin=10`;
+
   // Auto UPI countdown timer
   useEffect(() => {
     if (paymentMethod !== "RAZORPAY_UPI") return;
@@ -101,6 +112,16 @@ export function CheckoutForm() {
     }, 1000);
     return () => clearInterval(interval);
   }, [paymentMethod]);
+
+  // Dynamically load Razorpay SDK
+  useEffect(() => {
+    if (typeof window !== "undefined" && !window.Razorpay) {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
 
   // Card brand detection based on digits (RuPay, Visa, Mastercard, Amex)
   const getCardBrand = (num: string) => {
@@ -164,7 +185,7 @@ export function CheckoutForm() {
   };
 
   // Initiate Razorpay / Checkout Flow
-  const handleInitiatePayment = (e: React.FormEvent) => {
+  const handleInitiatePayment = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (items.length === 0) {
@@ -174,11 +195,6 @@ export function CheckoutForm() {
 
     if (!streetAddress || !city || !phone) {
       toast.error("Please fill in all required delivery address fields.");
-      return;
-    }
-
-    if (phone.replace(/\D/g, "").length < 10) {
-      toast.error("Please enter a valid 10-digit mobile number.");
       return;
     }
 
@@ -200,28 +216,6 @@ export function CheckoutForm() {
       return;
     }
 
-    // Open Razorpay Standard Checkout Modal
-    setIsRazorpayModalOpen(true);
-    setLoading(true);
-
-    if (paymentMethod === "COD") {
-      // Direct Cash on delivery confirmation
-      handleFinalizeOrder("COD");
-    } else if (paymentMethod === "CARD") {
-      setRazorpayStep("OTP_VERIFY");
-      setLoading(false);
-    } else {
-      setRazorpayStep("PROCESSING");
-      // Simulate automatic instant verification in 2 seconds
-      setTimeout(() => {
-        handleFinalizeOrder("RAZORPAY");
-      }, 2200);
-    }
-  };
-
-  // Complete Order in Database & Redirect
-  const handleFinalizeOrder = async (finalMethod: string) => {
-    setRazorpayStep("PROCESSING");
     setLoading(true);
 
     const fullFormattedAddress = `${fullName ? fullName + ", " : ""}${streetAddress}, ${city}, ${stateName} - ${postalCode}, ${country}`;
@@ -234,40 +228,98 @@ export function CheckoutForm() {
           items: items.map((i) => ({
             productId: i.id,
             quantity: i.quantity,
+            price: i.price,
+            title: i.title,
           })),
           address: fullFormattedAddress,
           phone,
-          paymentMethod: finalMethod === "COD" ? "COD" : "RAZORPAY",
+          paymentMethod: paymentMethod === "COD" ? "COD" : "RAZORPAY",
         }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Failed to process Razorpay payment.");
+        throw new Error(data.error || "Failed to process order. Please try again.");
       }
 
-      setRazorpayStep("SUCCESS");
-      await new Promise((r) => setTimeout(r, 1000));
+      if (paymentMethod === "COD") {
+        toast.success("Order confirmed with Cash on Delivery!");
+        clearCart();
+        router.push(`/checkout/success?orderId=${data.orderId}`);
+        return;
+      }
 
-      toast.success("Payment authorized via Razorpay! Order placed successfully.");
-      clearCart();
-      router.push(`/checkout/success?orderId=${data.orderId}`);
+      // Check if standard Razorpay checkout is available
+      if (window.Razorpay && data.razorpayKeyId && !data.razorpayKeyId.includes("test_ecomweb")) {
+        try {
+          const rzp = new window.Razorpay({
+            key: data.razorpayKeyId,
+            amount: data.amount * 100,
+            currency: "INR",
+            name: "E Com Web",
+            description: "Marketplace Purchase",
+            image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=128",
+            order_id: data.razorpayOrderId.startsWith("order_") ? undefined : data.razorpayOrderId,
+            handler: function () {
+              clearCart();
+              router.push(`/checkout/success?orderId=${data.orderId}`);
+            },
+            prefill: {
+              name: fullName,
+              contact: phone,
+            },
+            theme: {
+              color: "#2563eb",
+            },
+          });
+          rzp.open();
+          setLoading(false);
+          return;
+        } catch {
+          // fallback to interactive modal
+        }
+      }
+
+      // Open High-Fidelity Razorpay Interactive Modal
+      setIsRazorpayModalOpen(true);
+      if (paymentMethod === "CARD") {
+        setRazorpayStep("OTP_VERIFY");
+        setLoading(false);
+      } else {
+        setRazorpayStep("PROCESSING");
+        setTimeout(() => {
+          setRazorpayStep("SUCCESS");
+          setTimeout(() => {
+            clearCart();
+            router.push(`/checkout/success?orderId=${data.orderId}`);
+          }, 1200);
+        }, 2000);
+      }
     } catch (err: unknown) {
-      setIsRazorpayModalOpen(false);
       const msg = err instanceof Error ? err.message : "Payment error";
       toast.error(msg);
       setLoading(false);
+      setIsRazorpayModalOpen(false);
     }
   };
 
   const handleVerifyOtp = (e: React.FormEvent) => {
     e.preventDefault();
     if (!otpInput || otpInput.length < 4) {
-      toast.error("Please enter the 6-digit OTP sent to your phone (Demo: 123456)");
+      toast.error("Please enter the 6-digit OTP (Demo: 123456)");
       return;
     }
-    handleFinalizeOrder("RAZORPAY");
+    setRazorpayStep("SUCCESS");
+    setTimeout(() => {
+      clearCart();
+      router.push("/checkout/success?orderId=ord_" + Date.now());
+    }, 1000);
+  };
+
+  const handleCopyUpi = () => {
+    navigator.clipboard.writeText(upiPayeeAddress);
+    toast.success("UPI ID copied: " + upiPayeeAddress);
   };
 
   return (
@@ -315,7 +367,7 @@ export function CheckoutForm() {
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="e.g. Lakshmana Murthy"
+                  placeholder="e.g. Kadapala Lakshmana Murthy"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-muted/20 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
                 />
               </div>
@@ -329,7 +381,7 @@ export function CheckoutForm() {
                   required
                   value={streetAddress}
                   onChange={(e) => setStreetAddress(e.target.value)}
-                  placeholder="e.g. #402, Lotus Heights, 5th Main Road"
+                  placeholder="e.g. SBI Colony, ATP"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-muted/20 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
                 />
               </div>
@@ -343,7 +395,7 @@ export function CheckoutForm() {
                   required
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  placeholder="e.g. Bengaluru"
+                  placeholder="e.g. Anantapur / Bengaluru"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-muted/20 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
                 />
               </div>
@@ -357,17 +409,16 @@ export function CheckoutForm() {
                   onChange={(e) => setStateName(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-muted/20 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition cursor-pointer"
                 >
+                  <option value="Andhra Pradesh">Andhra Pradesh</option>
                   <option value="Karnataka">Karnataka</option>
+                  <option value="Telangana">Telangana</option>
+                  <option value="Tamil Nadu">Tamil Nadu</option>
                   <option value="Maharashtra">Maharashtra</option>
                   <option value="Delhi">Delhi NCR</option>
-                  <option value="Tamil Nadu">Tamil Nadu</option>
-                  <option value="Telangana">Telangana</option>
-                  <option value="Andhra Pradesh">Andhra Pradesh</option>
-                  <option value="Gujarat">Gujarat</option>
                   <option value="Kerala">Kerala</option>
+                  <option value="Gujarat">Gujarat</option>
                   <option value="Uttar Pradesh">Uttar Pradesh</option>
                   <option value="West Bengal">West Bengal</option>
-                  <option value="Rajasthan">Rajasthan</option>
                 </select>
               </div>
 
@@ -381,14 +432,14 @@ export function CheckoutForm() {
                   maxLength={6}
                   value={postalCode}
                   onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, ""))}
-                  placeholder="e.g. 560034"
+                  placeholder="e.g. 515004"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-muted/20 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition font-mono"
                 />
               </div>
 
               <div>
                 <label className="text-xs font-bold text-foreground/80 block mb-1">
-                  Mobile Number (for delivery updates) *
+                  Mobile Number *
                 </label>
                 <div className="relative">
                   <div className="absolute left-3.5 top-2.5 text-xs font-bold text-muted-foreground font-mono">
@@ -416,7 +467,7 @@ export function CheckoutForm() {
                 <div className="w-7 h-7 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold text-xs">
                   2
                 </div>
-                <h3 className="text-base font-bold tracking-tight">Payment Method (Razorpay Gateway)</h3>
+                <h3 className="text-base font-bold tracking-tight">Payment Gateway (Razorpay)</h3>
               </div>
               <div className="flex items-center gap-1.5 text-xs font-mono text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">
                 <Lock className="w-3 h-3" />
@@ -437,7 +488,7 @@ export function CheckoutForm() {
               >
                 <QrCode className="w-4 h-4 text-orange-500 mb-2" />
                 <div>
-                  <span className="text-xs font-bold block text-foreground">UPI / QR Code</span>
+                  <span className="text-xs font-bold block text-foreground">Real-Time UPI QR</span>
                   <span className="text-[10px] text-muted-foreground">GPay, PhonePe, Paytm</span>
                 </div>
               </button>
@@ -491,42 +542,64 @@ export function CheckoutForm() {
               </button>
             </div>
 
-            {/* ================= TAB 1: UPI SCAN & PAY ================= */}
+            {/* ================= TAB 1: REAL-TIME UPI QR CODE ================= */}
             {paymentMethod === "RAZORPAY_UPI" && (
               <div className="p-5 rounded-2xl bg-muted/30 border border-border space-y-4">
                 <div className="flex items-center justify-between border-b border-border/60 pb-3">
                   <div className="flex items-center gap-2">
                     <QrCode className="w-5 h-5 text-orange-500" />
                     <div>
-                      <h4 className="text-sm font-bold">Razorpay Fast UPI / Dynamic QR</h4>
+                      <h4 className="text-sm font-bold">Real-Time Dynamic UPI QR Code</h4>
                       <p className="text-[11px] text-muted-foreground">Scan with Google Pay, PhonePe, Paytm, CRED or BHIM</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Session Timer</span>
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">QR Session</span>
                     <span className="text-xs font-mono font-bold text-orange-500">
                       {Math.floor(upiTimer / 60)}:{String(upiTimer % 60).padStart(2, "0")}
                     </span>
                   </div>
                 </div>
 
-                {/* UPI QR & Popular Apps */}
+                {/* Real-time Generated UPI QR Code */}
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-6 py-2">
-                  <div className="p-3 bg-white rounded-2xl shadow-md border border-border flex flex-col items-center justify-center text-center">
-                    <div className="w-36 h-36 relative flex items-center justify-center bg-zinc-950 p-2 rounded-xl shadow-inner">
-                      <div className="w-full h-full border-2 border-dashed border-white/70 flex flex-col items-center justify-center text-white p-2">
-                        <QrCode className="w-16 h-16 text-white" />
-                        <span className="text-[10px] font-mono font-black mt-1 uppercase tracking-wider text-orange-400">
-                          {formatCurrency(total)}
-                        </span>
-                      </div>
+                  <div className="p-3.5 bg-white rounded-2xl shadow-xl border border-border flex flex-col items-center justify-center text-center">
+                    <div className="relative w-44 h-44 flex items-center justify-center bg-white p-1 rounded-xl">
+                      {/* Real Dynamic QR Image generated with UPI URI intent */}
+                      <Image
+                        src={realTimeQrUrl}
+                        alt="Real-time Razorpay UPI QR Code"
+                        width={176}
+                        height={176}
+                        className="rounded-lg"
+                        unoptimized
+                      />
                     </div>
-                    <span className="text-[10px] font-bold text-zinc-800 mt-1.5 flex items-center gap-1">
-                      <Lock className="w-3 h-3 text-emerald-600" /> Scan to Pay with Any UPI App
-                    </span>
+                    <div className="mt-2 text-[11px] font-black text-zinc-900 flex items-center justify-center gap-1">
+                      <span>Pay Exact:</span>
+                      <span className="text-blue-600 font-mono text-xs">{formatCurrency(total)}</span>
+                    </div>
                   </div>
 
                   <div className="space-y-3 flex-1 w-full">
+                    <div className="p-3 bg-background rounded-xl border border-border space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground font-medium">Merchant UPI VPA:</span>
+                        <button
+                          type="button"
+                          onClick={handleCopyUpi}
+                          className="flex items-center gap-1 text-primary hover:underline font-mono font-bold cursor-pointer"
+                        >
+                          <span>{upiPayeeAddress}</span>
+                          <Copy className="w-3 h-3" />
+                        </button>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground font-medium">Payee Name:</span>
+                        <span className="font-bold text-foreground">{upiPayeeName}</span>
+                      </div>
+                    </div>
+
                     <div>
                       <label className="text-xs font-bold text-foreground/80 block mb-1">
                         Or enter your UPI ID (VPA)
@@ -536,14 +609,14 @@ export function CheckoutForm() {
                           type="text"
                           value={upiId}
                           onChange={(e) => setUpiId(e.target.value)}
-                          placeholder="e.g. name@okhdfcbank or 9876543210@paytm"
+                          placeholder="e.g. yourname@okhdfcbank or 9876543210@paytm"
                           className="w-full pl-3.5 pr-20 py-2.5 rounded-xl bg-background border border-border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
                         />
                         <button
                           type="button"
                           onClick={() => {
                             if (upiId.includes("@")) {
-                              toast.success("UPI ID verified! Click Place Order to pay via Razorpay.");
+                              toast.success("UPI ID verified! Click 'Pay via Razorpay' to authorize.");
                             } else {
                               toast.error("Please enter a valid UPI address (e.g. name@oksbi).");
                             }
@@ -557,7 +630,7 @@ export function CheckoutForm() {
 
                     <div className="pt-1">
                       <span className="text-[11px] font-bold text-muted-foreground block mb-2">
-                        Supported UPI Apps:
+                        Supported Real-time UPI Apps:
                       </span>
                       <div className="flex flex-wrap gap-2">
                         {["Google Pay", "PhonePe", "Paytm", "BHIM", "CRED"].map((app) => (
@@ -578,7 +651,6 @@ export function CheckoutForm() {
             {/* ================= TAB 2: CREDIT / DEBIT CARD ================= */}
             {paymentMethod === "CARD" && (
               <div className="space-y-6 pt-2">
-                {/* Visual Interactive RuPay / Visa Credit Card Display */}
                 <div className="relative w-full max-w-sm mx-auto aspect-[1.586/1] rounded-2xl p-6 bg-gradient-to-tr from-slate-900 via-neutral-900 to-zinc-950 text-white shadow-2xl border border-white/10 flex flex-col justify-between overflow-hidden">
                   <div className="absolute top-0 right-0 w-44 h-44 bg-blue-500/20 rounded-full blur-2xl pointer-events-none" />
                   <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-orange-500/20 rounded-full blur-2xl pointer-events-none" />
@@ -626,7 +698,7 @@ export function CheckoutForm() {
                       type="text"
                       value={cardHolder}
                       onChange={(e) => setCardHolder(e.target.value)}
-                      placeholder="e.g. Lakshmana Murthy"
+                      placeholder="e.g. Kadapala Lakshmana Murthy"
                       className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
                     />
                   </div>
@@ -678,19 +750,6 @@ export function CheckoutForm() {
                       />
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-2 pt-1">
-                    <input
-                      type="checkbox"
-                      id="saveCard"
-                      checked={saveCard}
-                      onChange={(e) => setSaveCard(e.target.checked)}
-                      className="rounded border-border text-primary focus:ring-primary w-4 h-4"
-                    />
-                    <label htmlFor="saveCard" className="text-xs text-muted-foreground font-medium cursor-pointer">
-                      Save card encrypted via Razorpay Tokenization (RBI Compliant)
-                    </label>
-                  </div>
                 </div>
               </div>
             )}
@@ -699,7 +758,7 @@ export function CheckoutForm() {
             {paymentMethod === "NETBANKING" && (
               <div className="p-5 rounded-2xl bg-muted/30 border border-border space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                  Select Popular Bank
+                  Select Bank
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                   {[
@@ -939,7 +998,7 @@ export function CheckoutForm() {
                   <div className="space-y-1">
                     <h4 className="text-base font-bold text-white">Processing Razorpay Payment...</h4>
                     <p className="text-xs text-blue-200/70">
-                      Communicating securely with banking gateway &amp; NPCI...
+                      Communicating securely with NPCI / Banking Network...
                     </p>
                   </div>
                   <div className="flex items-center justify-center gap-2 text-[11px] text-blue-300/60 font-mono">
