@@ -136,10 +136,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             where: { email: profile.email },
           });
           if (!dbUser) {
+            const randomPassword = await bcrypt.hash(`google_${Date.now()}_${Math.random()}`, 10);
             dbUser = await prisma.user.create({
               data: {
                 name: profile.name || "Customer",
                 email: profile.email,
+                password: randomPassword,
                 role: Role.CUSTOMER,
               },
             });
