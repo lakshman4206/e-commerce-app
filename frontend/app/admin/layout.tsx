@@ -12,6 +12,7 @@ import {
   Layers,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
 
 export default async function AdminLayout({
   children,
@@ -86,11 +87,7 @@ export default async function AdminLayout({
               <div className="text-xs font-semibold truncate">{session.user.name || "Admin"}</div>
               <div className="text-[10px] text-muted-foreground truncate">{session.user.email}</div>
             </div>
-            <Button variant="ghost" size="icon" asChild className="h-7 w-7 text-muted-foreground hover:text-destructive">
-              <Link href="/api/auth/signout">
-                <LogOut className="w-3.5 h-3.5" />
-              </Link>
-            </Button>
+            <AdminLogoutButton />
           </div>
         </div>
       </aside>

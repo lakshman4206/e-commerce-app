@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import Link from "next/link";
 import { Lock, Mail, Shield, User, ArrowRight, Loader2 } from "lucide-react";
+import { useCartStore } from "@/store/use-cart-store";
 
 function LoginForm() {
   const router = useRouter();
@@ -34,7 +35,15 @@ function LoginForm() {
       }
 
       toast.success("Authentication successful! Welcome back.");
-      router.push(callbackUrl);
+      
+      const cartItemsCount = useCartStore.getState().items.length;
+      let targetUrl = callbackUrl;
+      
+      if (!searchParams.get("callbackUrl") || callbackUrl === "/") {
+        targetUrl = cartItemsCount > 0 ? "/checkout" : "/products";
+      }
+
+      router.push(targetUrl);
       router.refresh();
     } catch {
       toast.error("An error occurred during authentication.");

@@ -5,6 +5,7 @@ import { useCartStore } from "@/store/use-cart-store";
 import { ShoppingBag, User, Shield, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { signOut } from "next-auth/react";
 
 interface NavbarProps {
   user?: {
@@ -23,6 +24,10 @@ export function Navbar({ user }: NavbarProps) {
   }, []);
 
   const totalItems = mounted ? getTotalItems() : 0;
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: "/" });
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/80 bg-background/80 backdrop-blur-md transition-all">
@@ -95,12 +100,11 @@ export function Navbar({ user }: NavbarProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                asChild
+                onClick={handleSignOut}
                 className="text-xs text-muted-foreground hover:text-destructive"
+                title="Sign Out"
               >
-                <Link href="/api/auth/signout" title="Sign Out">
-                  <LogOut className="w-3.5 h-3.5" />
-                </Link>
+                <LogOut className="w-3.5 h-3.5" />
               </Button>
             </div>
           ) : (

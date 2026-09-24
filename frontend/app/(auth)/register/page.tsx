@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import Link from "next/link";
 import { Lock, Mail, User, ArrowRight, Loader2, CheckCircle2, ShieldCheck } from "lucide-react";
+import { useCartStore } from "@/store/use-cart-store";
 
 function RegisterForm() {
   const router = useRouter();
@@ -67,8 +68,14 @@ function RegisterForm() {
         return;
       }
 
-      // 3. Redirect to destination (products catalog or checkout)
-      router.push(callbackUrl);
+      // 3. Redirect to destination (checkout if cart has items, else products)
+      const cartItemsCount = useCartStore.getState().items.length;
+      let targetUrl = callbackUrl;
+      if (!searchParams.get("callbackUrl") || callbackUrl === "/products" || callbackUrl === "/") {
+        targetUrl = cartItemsCount > 0 ? "/checkout" : "/products";
+      }
+
+      router.push(targetUrl);
       router.refresh();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Registration error";
