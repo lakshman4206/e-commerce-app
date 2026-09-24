@@ -66,22 +66,20 @@ function LoginForm() {
       toast.success("Welcome back! Signing you in securely...");
 
       // Determine smart destination:
-      // If admin user, route to /admin if not on a specific path
-      // If cart has items and user came to checkout, route to /checkout
-      const cartItemsCount = useCartStore.getState().items.length;
-      let targetUrl = callbackUrl;
-
-      if (
-        !searchParams.get("callbackUrl") ||
-        callbackUrl === "/" ||
-        callbackUrl === "/checkout"
-      ) {
-        if (email.toLowerCase().includes("admin")) {
-          targetUrl = "/admin";
-        } else if (cartItemsCount > 0) {
-          targetUrl = "/checkout";
+      // 1. If user is admin, always go to /admin
+      // 2. If an explicit callbackUrl (e.g., /checkout) is present, honour it
+      // 3. Otherwise, if cart has items, go to /checkout, else /products
+      let targetUrl: string;
+      if (email.toLowerCase().includes("admin")) {
+        targetUrl = "/admin";
+      } else {
+        const rawCallback = searchParams.get("callbackUrl");
+        if (rawCallback && rawCallback !== "/" && rawCallback !== "/products") {
+          // honour original destination like /checkout
+          targetUrl = rawCallback;
         } else {
-          targetUrl = "/products";
+          const cartItemsCount = useCartStore.getState().items.length;
+          targetUrl = cartItemsCount > 0 ? "/checkout" : "/products";
         }
       }
 
