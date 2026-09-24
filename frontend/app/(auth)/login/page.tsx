@@ -2,57 +2,63 @@
 
 import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Lock, Mail, Shield, User, ArrowRight, Loader2 } from "lucide-react";
+import { Lock, Mail, Shield, User, ArrowRight, Loader2, AlertCircle } from "lucide-react";
 import { useCartStore } from "@/store/use-cart-store";
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage(null);
 
     try {
       const res = await signIn("credentials", {
         redirect: false,
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
 
       if (res?.error) {
-        toast.error("Invalid credentials. Please verify your email and password.");
+        const err = "Account not found or password incorrect. If you're a new customer, please click 'Register here' below to create your account.";
+        setErrorMessage(err);
+        toast.error("Authentication failed. Please check your credentials or register.");
+        setLoading(false);
         return;
       }
 
-      toast.success("Authentication successful! Welcome back.");
-      
+      toast.success("Welcome back! Redirecting to checkout...");
+
+      // Determine destination: if they have items in cart, send to checkout (Payment Gateway)
       const cartItemsCount = useCartStore.getState().items.length;
       let targetUrl = callbackUrl;
-      
-      if (!searchParams.get("callbackUrl") || callbackUrl === "/") {
-        targetUrl = cartItemsCount > 0 ? "/checkout" : "/products";
+
+      if (!searchParams.get("callbackUrl") || callbackUrl === "/" || callbackUrl === "/checkout") {
+        targetUrl = "/checkout";
       }
 
-      router.push(targetUrl);
-      router.refresh();
+      // Hard redirect to ensure auth cookie is immediately transmitted to Server Components
+      window.location.href = targetUrl;
     } catch {
+      setErrorMessage("An unexpected error occurred during sign in. Please try again.");
       toast.error("An error occurred during authentication.");
-    } finally {
       setLoading(false);
     }
   };
 
   const handleQuickLogin = (role: "ADMIN" | "CUSTOMER") => {
+    setErrorMessage(null);
     if (role === "ADMIN") {
       setEmail("admin@store.com");
       setPassword("AdminPass123!");
@@ -61,6 +67,8 @@ function LoginForm() {
       setPassword("CustomerPass123!");
     }
   };
+
+  const registerHref = `/register?callbackUrl=${encodeURIComponent(callbackUrl === "/" ? "/checkout" : callbackUrl)}`;
 
   return (
     <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-xl space-y-6">
@@ -74,14 +82,14 @@ function LoginForm() {
         </Link>
         <h2 className="text-2xl font-bold tracking-tight mt-2">Welcome Back</h2>
         <p className="text-xs text-muted-foreground">
-          Sign in to access your dashboard, order history, and preferences.
+          Sign in to finalize your order at the payment gateway.
         </p>
       </div>
 
       {/* Quick Demo Credentials Switcher */}
       <div className="rounded-2xl border border-border/80 bg-muted/40 p-3.5 space-y-2">
         <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-          <span>Quick Login Switcher</span>
+          <span>Quick Demo Access</span>
           <span className="text-emerald-500 font-bold">1-Click Fill</span>
         </div>
         <div className="grid grid-cols-2 gap-2">
@@ -103,6 +111,24 @@ function LoginForm() {
           </button>
         </div>
       </div>
+
+      {/* Error Alert Message if Sign In Fails */}
+      {errorMessage && (
+        <div className="p-3.5 rounded-2xl bg-destructive/10 border border-destructive/30 text-destructive text-xs space-y-2">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>{errorMessage}</span>
+          </div>
+          <div className="pt-1">
+            <Link
+              href={registerHref}
+              className="inline-flex items-center gap-1 font-semibold underline text-foreground hover:text-primary"
+            >
+              <span>Create an account with this email →</span>
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Credentials Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -148,20 +174,20 @@ function LoginForm() {
           {loading ? (
             <div className="flex items-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Verifying...</span>
+              <span>Authenticating...</span>
             </div>
           ) : (
             <div className="flex items-center gap-1.5">
-              <span>Sign In</span>
+              <span>Sign In to Checkout</span>
               <ArrowRight className="w-4 h-4" />
             </div>
           )}
         </Button>
       </form>
 
-      <div className="text-center text-xs text-muted-foreground">
+      <div className="text-center text-xs text-muted-foreground pt-2">
         Don&apos;t have an account yet?{" "}
-        <Link href="/register" className="font-semibold text-primary hover:underline">
+        <Link href={registerHref} className="font-semibold text-primary hover:underline">
           Register here
         </Link>
       </div>

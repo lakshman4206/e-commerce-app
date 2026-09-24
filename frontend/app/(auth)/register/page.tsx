@@ -75,12 +75,11 @@ function RegisterForm() {
         targetUrl = cartItemsCount > 0 ? "/checkout" : "/products";
       }
 
-      router.push(targetUrl);
-      router.refresh();
+      // Hard navigation to immediately pass session cookies to /checkout
+      window.location.href = targetUrl;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Registration error";
       toast.error(msg);
-    } finally {
       setLoading(false);
     }
   };
