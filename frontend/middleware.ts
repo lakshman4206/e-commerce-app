@@ -5,10 +5,15 @@ import { getToken } from "next-auth/jwt";
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "",
-  });
+  let token = null;
+  try {
+    token = await getToken({
+      req,
+      secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "",
+    });
+  } catch (err) {
+    console.error("[MIDDLEWARE_AUTH_ERROR]:", err);
+  }
 
   const isAuthenticated = !!token;
   const userRole = token?.role as string | undefined;
