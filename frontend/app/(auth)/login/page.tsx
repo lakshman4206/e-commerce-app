@@ -9,14 +9,11 @@ import Link from "next/link";
 import {
   Lock,
   Mail,
-  Shield,
-  User,
   ArrowRight,
   Loader2,
   AlertCircle,
   Eye,
   EyeOff,
-  Sparkles,
   KeyRound,
   ShieldCheck,
   CheckCircle2,
@@ -32,14 +29,14 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [activeRole, setActiveRole] = useState<"ADMIN" | "CUSTOMER" | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [forgotModalOpen, setForgotModalOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !password) {
       toast.error("Please provide both email and password.");
       return;
     }
@@ -50,37 +47,32 @@ function LoginForm() {
     try {
       const res = await signIn("credentials", {
         redirect: false,
-        email: email.trim().toLowerCase(),
+        email: cleanEmail,
         password,
       });
 
       if (res?.error) {
         const err =
-          "Invalid email or password. If you are new to E Com Web, please register your account below.";
+          "Invalid email or password. If you are new to E Com Web, please create an account below.";
         setErrorMessage(err);
-        toast.error("Authentication failed. Please verify your credentials.");
+        toast.error("Authentication failed. Please check your credentials.");
         setLoading(false);
         return;
       }
 
       toast.success("Welcome back! Signing you in securely...");
 
-      // Determine smart destination:
-      // 1. If user is admin, always go to /admin
-      // 2. If an explicit callbackUrl (e.g., /checkout) is present, honour it
-      // 3. Otherwise, if cart has items, go to /checkout, else /products
-      let targetUrl: string;
-      if (email.toLowerCase().includes("admin")) {
+      // Determine smart destination
+      let targetUrl = "/products";
+      const rawCallback = searchParams.get("callbackUrl");
+
+      if (cleanEmail.includes("admin")) {
         targetUrl = "/admin";
+      } else if (rawCallback && rawCallback !== "/" && rawCallback !== "/login") {
+        targetUrl = rawCallback;
       } else {
-        const rawCallback = searchParams.get("callbackUrl");
-        if (rawCallback && rawCallback !== "/" && rawCallback !== "/products") {
-          // honour original destination like /checkout
-          targetUrl = rawCallback;
-        } else {
-          const cartItemsCount = useCartStore.getState().items.length;
-          targetUrl = cartItemsCount > 0 ? "/checkout" : "/products";
-        }
+        const cartItemsCount = useCartStore.getState().items.length;
+        targetUrl = cartItemsCount > 0 ? "/checkout" : "/products";
       }
 
       // Hard redirect to immediately synchronize auth cookies across all server components
@@ -92,22 +84,15 @@ function LoginForm() {
     }
   };
 
-  const handleQuickLogin = (role: "ADMIN" | "CUSTOMER") => {
-    setErrorMessage(null);
-    setActiveRole(role);
-    if (role === "ADMIN") {
-      setEmail("admin@store.com");
-      setPassword("AdminPass123!");
-      toast.info("Admin demo credentials filled. Click 'Sign In' or submit.");
-    } else {
-      setEmail("customer@gmail.com");
-      setPassword("CustomerPass123!");
-      toast.info("Customer demo credentials filled. Click 'Sign In' or submit.");
-    }
-  };
-
   const handleGoogleLogin = () => {
-    signIn("google", { callbackUrl: callbackUrl === "/" ? "/products" : callbackUrl });
+    const rawCallback = searchParams.get("callbackUrl");
+    let target = "/products";
+    if (rawCallback && rawCallback !== "/" && rawCallback !== "/login") {
+      target = rawCallback;
+    } else if (useCartStore.getState().items.length > 0) {
+      target = "/checkout";
+    }
+    signIn("google", { callbackUrl: target });
   };
 
   const handleForgotPassword = (e: React.FormEvent) => {
@@ -150,47 +135,6 @@ function LoginForm() {
           <p className="text-xs text-muted-foreground">
             Sign in to access your orders, wishlist, and express payment gateway.
           </p>
-        </div>
-
-        {/* 1-Click Fast Demo Credentials Switcher */}
-        <div className="rounded-2xl border border-border/90 bg-muted/30 p-3.5 space-y-2.5">
-          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-            <span className="flex items-center gap-1.5 text-foreground">
-              <Sparkles className="w-3.5 h-3.5 text-primary" />
-              <span>Instant Demo Access</span>
-            </span>
-            <span className="text-[10px] text-emerald-500 font-extrabold bg-emerald-500/10 px-2 py-0.5 rounded-full">
-              1-Click Fill
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => handleQuickLogin("ADMIN")}
-              className={`flex items-center justify-center gap-2 py-2 px-2.5 rounded-xl border text-xs font-bold transition-all shadow-xs ${
-                activeRole === "ADMIN"
-                  ? "bg-primary text-primary-foreground border-primary ring-2 ring-primary/30"
-                  : "bg-background border-border text-foreground hover:border-primary/50 hover:bg-muted/50"
-              }`}
-            >
-              <Shield className="w-3.5 h-3.5 text-primary" />
-              <span>Admin Demo</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleQuickLogin("CUSTOMER")}
-              className={`flex items-center justify-center gap-2 py-2 px-2.5 rounded-xl border text-xs font-bold transition-all shadow-xs ${
-                activeRole === "CUSTOMER"
-                  ? "bg-primary text-primary-foreground border-primary ring-2 ring-primary/30"
-                  : "bg-background border-border text-foreground hover:border-primary/50 hover:bg-muted/50"
-              }`}
-            >
-              <User className="w-3.5 h-3.5 text-muted-foreground" />
-              <span>Customer Demo</span>
-            </button>
-          </div>
         </div>
 
         {/* Error Alert Message if Sign In Fails */}
@@ -286,12 +230,12 @@ function LoginForm() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full h-12 text-sm font-bold shadow-lg shadow-primary/20 mt-2 bg-gradient-to-r from-primary to-orange-600 hover:from-primary/90 hover:to-orange-600/90 text-primary-foreground transition-all rounded-xl"
+            className="w-full h-12 text-sm font-bold shadow-lg shadow-primary/20 mt-2 bg-gradient-to-r from-primary to-orange-600 hover:from-primary/90 hover:to-orange-600/90 text-primary-foreground transition-all rounded-xl cursor-pointer"
           >
             {loading ? (
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Authenticating with E Com Web...</span>
+                <span>Signing in to E Com Web...</span>
               </div>
             ) : (
               <div className="flex items-center gap-2">
@@ -315,7 +259,7 @@ function LoginForm() {
           <button
             type="button"
             onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-border bg-background hover:bg-muted/40 text-sm font-semibold transition-all hover:shadow-md"
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-border bg-background hover:bg-muted/40 text-sm font-semibold transition-all hover:shadow-md cursor-pointer"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path

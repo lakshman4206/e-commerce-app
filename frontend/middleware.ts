@@ -5,12 +5,38 @@ import { getToken } from "next-auth/jwt";
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  const secret =
+    process.env.AUTH_SECRET ||
+    process.env.NEXTAUTH_SECRET ||
+    "e-com-web-super-secret-auth-key-32chars-minimum";
+
   let token = null;
   try {
-    token = await getToken({
-      req,
-      secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "",
-    });
+    const cookieNames = [
+      "__Secure-authjs.session-token",
+      "authjs.session-token",
+      "__Secure-next-auth.session-token",
+      "next-auth.session-token",
+    ];
+
+    for (const cookieName of cookieNames) {
+      if (req.cookies.has(cookieName)) {
+        token = await getToken({
+          req,
+          secret,
+          cookieName,
+          secureCookie: cookieName.startsWith("__Secure-"),
+        });
+        if (token) break;
+      }
+    }
+
+    if (!token) {
+      token = await getToken({
+        req,
+        secret,
+      });
+    }
   } catch (err) {
     console.error("[MIDDLEWARE_AUTH_ERROR]:", err);
   }
