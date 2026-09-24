@@ -518,9 +518,10 @@ export function CheckoutForm() {
                   </div>
                 </div>
 
-                {/* Clean, Non-colliding QR & UPI section */}
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6 py-2">
-                  <div className="p-4 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center justify-center shrink-0 w-full sm:w-auto">
+                {/* Clean, Non-colliding, Perfectly Stacked UPI QR & VPA section */}
+                <div className="space-y-4 pt-1">
+                  {/* 1. Centered Dynamic QR Code Box */}
+                  <div className="p-5 bg-white rounded-2xl shadow-xs border border-slate-200 flex flex-col items-center justify-center text-center max-w-sm mx-auto">
                     <div className="relative w-44 h-44 flex items-center justify-center bg-white p-1 rounded-xl">
                       <Image
                         src={realTimeQrUrl}
@@ -531,74 +532,84 @@ export function CheckoutForm() {
                         unoptimized
                       />
                     </div>
-                    <div className="mt-2 text-xs font-bold text-slate-800 flex items-center justify-center gap-1">
-                      <span>Pay Exact:</span>
-                      <span className="text-orange-600 font-mono text-sm font-black">{formatCurrency(total)}</span>
+                    <div className="mt-3 text-sm font-bold text-slate-800 flex items-center justify-center gap-1.5">
+                      <span>Pay Exact Amount:</span>
+                      <span className="text-orange-600 font-mono text-base font-black">
+                        {formatCurrency(total)}
+                      </span>
                     </div>
+                    <span className="text-[11px] text-slate-500 mt-0.5">
+                      Scan with Google Pay, PhonePe, Paytm, CRED or BHIM
+                    </span>
                   </div>
 
-                  <div className="space-y-3.5 flex-1 w-full">
-                    {/* Merchant VPA card with copy button */}
-                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-500 font-medium">Merchant UPI VPA:</span>
+                  {/* 2. Merchant VPA Card with full-width rows */}
+                  <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-2.5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs border-b border-slate-100 pb-2">
+                      <span className="text-slate-500 font-medium">Merchant Payee:</span>
+                      <span className="font-bold text-slate-900">{upiPayeeName}</span>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                      <span className="text-slate-500 font-medium">Merchant UPI VPA:</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-1 rounded-lg">
+                          {upiPayeeAddress}
+                        </span>
                         <button
                           type="button"
                           onClick={handleCopyUpi}
-                          className="flex items-center gap-1 text-orange-600 hover:text-orange-700 font-mono font-bold cursor-pointer"
+                          className="flex items-center gap-1 text-xs font-bold text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-2.5 py-1 rounded-lg border border-orange-200 transition cursor-pointer"
                         >
-                          <span>{upiPayeeAddress}</span>
                           <Copy className="w-3.5 h-3.5" />
+                          <span>Copy</span>
                         </button>
                       </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-500 font-medium">Payee Name:</span>
-                        <span className="font-bold text-slate-900">{upiPayeeName}</span>
-                      </div>
                     </div>
+                  </div>
 
-                    <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1">
-                        Or enter your UPI ID (VPA)
-                      </label>
-                      <div className="relative flex items-center">
-                        <input
-                          type="text"
-                          value={upiId}
-                          onChange={(e) => setUpiId(e.target.value)}
-                          placeholder="e.g. yourname@okhdfcbank or 9876543210@paytm"
-                          className="w-full pl-3.5 pr-24 py-2.5 rounded-xl bg-white border border-slate-300 text-sm font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (upiId.includes("@")) {
-                              toast.success("UPI ID verified! Click 'Pay via Razorpay' to authorize.");
-                            } else {
-                              toast.error("Please enter a valid UPI address (e.g. name@oksbi).");
-                            }
-                          }}
-                          className="absolute right-1.5 px-3 py-1.5 bg-orange-600 text-white text-xs font-bold rounded-lg hover:bg-orange-700 transition shadow-xs cursor-pointer"
+                  {/* 3. UPI ID Input field */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 block">
+                      Or enter your personal UPI ID (VPA) for payment request:
+                    </label>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        type="text"
+                        value={upiId}
+                        onChange={(e) => setUpiId(e.target.value)}
+                        placeholder="e.g. yourname@okhdfcbank or 9876543210@paytm"
+                        className="flex-1 px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-sm font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (upiId.includes("@")) {
+                            toast.success("UPI ID verified! Click 'Pay via Razorpay' to authorize.");
+                          } else {
+                            toast.error("Please enter a valid UPI address (e.g. name@oksbi).");
+                          }
+                        }}
+                        className="px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer shrink-0"
+                      >
+                        Verify UPI ID
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 4. Supported UPI Apps */}
+                  <div className="pt-1">
+                    <span className="text-[11px] font-bold text-slate-500 block mb-1.5">
+                      Supported Real-time UPI Apps:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {["Google Pay", "PhonePe", "Paytm", "BHIM", "CRED"].map((app) => (
+                        <span
+                          key={app}
+                          className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-[11px] font-semibold text-slate-700 shadow-2xs"
                         >
-                          Verify
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <span className="text-[11px] font-bold text-slate-500 block mb-1.5">
-                        Supported Real-time UPI Apps:
-                      </span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {["Google Pay", "PhonePe", "Paytm", "BHIM", "CRED"].map((app) => (
-                          <span
-                            key={app}
-                            className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-[11px] font-semibold text-slate-700"
-                          >
-                            {app}
-                          </span>
-                        ))}
-                      </div>
+                          {app}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 </div>

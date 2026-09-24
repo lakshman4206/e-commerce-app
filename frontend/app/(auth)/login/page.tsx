@@ -23,13 +23,29 @@ import { useCartStore } from "@/store/use-cart-store";
 function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const authError = searchParams.get("error");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(() => {
+    if (!authError) return null;
+    if (authError === "OAuthSignin" || authError === "OAuthCallback" || authError === "Callback") {
+      return "Google Sign-In configuration or redirect URI mismatch. Please check your Google Cloud Console redirect URI or sign in with your email & password below.";
+    }
+    if (authError === "OAuthAccountNotLinked") {
+      return "An account with this email already exists with a different sign-in method. Please sign in with your email and password.";
+    }
+    if (authError === "Configuration") {
+      return "Authentication server configuration issue. You can sign in directly using email & password.";
+    }
+    if (authError === "AccessDenied") {
+      return "Access was denied by Google. Please try again or sign in with email.";
+    }
+    return `Authentication error (${authError}). Please sign in with email & password.`;
+  });
   const [forgotModalOpen, setForgotModalOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
 

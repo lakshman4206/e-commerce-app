@@ -102,8 +102,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
     Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId:
+        process.env.GOOGLE_CLIENT_ID ||
+        process.env.AUTH_GOOGLE_ID ||
+        "760708631946-6d2q9mpa8554lj62jj5f8l2gj73u66eh.apps.googleusercontent.com",
+      clientSecret:
+        process.env.GOOGLE_CLIENT_SECRET ||
+        process.env.AUTH_GOOGLE_SECRET ||
+        "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w",
+      allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
           prompt: "consent",
@@ -130,28 +137,33 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = (user.role as Role) || "CUSTOMER";
       }
       // For Google OAuth, auto-provision user in DB
-      if (account?.provider === "google" && profile?.email) {
-        try {
-          let dbUser = await prisma.user.findUnique({
-            where: { email: profile.email },
-          });
-          if (!dbUser) {
-            const randomPassword = await bcrypt.hash(`google_${Date.now()}_${Math.random()}`, 10);
-            dbUser = await prisma.user.create({
-              data: {
-                name: profile.name || "Customer",
-                email: profile.email,
-                password: randomPassword,
-                role: Role.CUSTOMER,
-              },
+      if (account?.provider === "google") {
+        const userEmail = (profile?.email || (user as any)?.email || token.email || "").toLowerCase().trim();
+        if (userEmail) {
+          try {
+            let dbUser = await prisma.user.findUnique({
+              where: { email: userEmail },
             });
+            if (!dbUser) {
+              const randomPassword = await bcrypt.hash(`google_${Date.now()}_${Math.random()}`, 10);
+              dbUser = await prisma.user.create({
+                data: {
+                  name: profile?.name || (user as any)?.name || "Customer",
+                  email: userEmail,
+                  password: randomPassword,
+                  role: Role.CUSTOMER,
+                },
+              });
+            }
+            token.id = dbUser.id;
+            token.role = dbUser.role;
+            token.email = dbUser.email;
+            token.name = dbUser.name;
+          } catch (e) {
+            console.warn("[AUTH] Could not sync Google user to DB:", e);
+            token.id = token.sub || `google_${Date.now()}`;
+            token.role = "CUSTOMER";
           }
-          token.id = dbUser.id;
-          token.role = dbUser.role;
-        } catch (e) {
-          console.warn("[AUTH] Could not sync Google user to DB:", e);
-          token.id = token.sub || `google_${Date.now()}`;
-          token.role = "CUSTOMER";
         }
       }
       return token;
