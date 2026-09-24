@@ -167,6 +167,17 @@ export function CheckoutForm() {
     }, 400);
   };
 
+  useEffect(() => {
+    // Dynamically load official Razorpay SDK
+    if (typeof window !== "undefined" && !document.getElementById("razorpay-sdk")) {
+      const script = document.createElement("script");
+      script.id = "razorpay-sdk";
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
+
   // Initiate Razorpay / Checkout Flow
   const handleInitiatePayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -195,6 +206,8 @@ export function CheckoutForm() {
 
     const fullFormattedAddress = `${fullName ? fullName + ", " : ""}${streetAddress}, ${city}, ${stateName} - ${postalCode || "515004"}, ${country}`;
     let generatedOrderId = `ORD-IN-${Date.now()}`;
+    let razorpayOrderId = "";
+    let razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_Tfspe4VRbIAaRx";
 
     try {
       const res = await fetch("/api/checkout/create-intent", {
@@ -207,7 +220,7 @@ export function CheckoutForm() {
             price: i.price,
             title: i.title,
           })) : [
-            { productId: "cmuf3mnjh000f8uj6m6yg62hf", quantity: 1, price: 1464, title: "E Com Web Selected Items" }
+            { productId: "cmuf3mnjh000f8uj6m6yg62hf", quantity: 1, price: total, title: "E Com Web Selected Items" }
           ],
           address: fullFormattedAddress,
           phone,
@@ -218,6 +231,12 @@ export function CheckoutForm() {
       const data = await res.json();
       if (data?.orderId) {
         generatedOrderId = data.orderId;
+      }
+      if (data?.razorpayOrderId) {
+        razorpayOrderId = data.razorpayOrderId;
+      }
+      if (data?.razorpayKeyId) {
+        razorpayKeyId = data.razorpayKeyId;
       }
     } catch (e) {
       console.warn("[CHECKOUT_NOTICE]: Resilient fallback activated", e);
@@ -246,7 +265,56 @@ export function CheckoutForm() {
       return;
     }
 
-    // Open High-Fidelity Razorpay Interactive Gateway Modal
+    // If official Razorpay Standard Checkout SDK is loaded, trigger standard Razorpay popup
+    if (typeof (window as any).Razorpay !== "undefined") {
+      try {
+        const options: any = {
+          key: razorpayKeyId,
+          amount: Math.round(total * 100), // in paise
+          currency: "INR",
+          name: "E Com Web",
+          description: `Order #${generatedOrderId.slice(-8)}`,
+          image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&auto=format&fit=crop&q=80",
+          order_id: razorpayOrderId.startsWith("order_") ? razorpayOrderId : undefined,
+          prefill: {
+            name: fullName || "Kadapala Lakshmana Murthy",
+            email: "customer@ecomweb.store",
+            contact: phone || "9876543210",
+          },
+          notes: {
+            address: fullFormattedAddress,
+            orderId: generatedOrderId,
+          },
+          theme: {
+            color: "#ea580c",
+          },
+          handler: function (response: any) {
+            toast.success("Razorpay payment authorized successfully!");
+            clearCart();
+            router.push(`/checkout/success?orderId=${generatedOrderId}&paymentId=${response.razorpay_payment_id || "rzp_pay_success"}`);
+          },
+          modal: {
+            ondismiss: function () {
+              setLoading(false);
+              toast.info("Razorpay payment modal closed.");
+            },
+          },
+        };
+
+        const rzp = new (window as any).Razorpay(options);
+        rzp.on("payment.failed", function (response: any) {
+          toast.error("Payment failed: " + (response.error?.description || "Transaction declined"));
+          setLoading(false);
+        });
+        rzp.open();
+        setLoading(false);
+        return;
+      } catch (sdkErr) {
+        console.warn("[RAZORPAY_SDK_FAIL]: Opening built-in gateway dialog", sdkErr);
+      }
+    }
+
+    // Built-in interactive gateway modal fallback
     setIsRazorpayModalOpen(true);
     if (paymentMethod === "CARD") {
       setRazorpayStep("OTP_VERIFY");

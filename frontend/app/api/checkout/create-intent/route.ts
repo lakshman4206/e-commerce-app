@@ -142,13 +142,50 @@ export async function POST(req: Request) {
       });
     }
 
-    // 3. Razorpay Order Integration / Key Handling
+    // 3. Razorpay Real Order Creation with Test/Live Keys
     const razorpayKeyId =
       process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ||
       process.env.RAZORPAY_KEY_ID ||
-      "rzp_test_ecomweb_live_v1";
+      "rzp_test_Tfspe4VRbIAaRx";
+    const razorpayKeySecret =
+      process.env.RAZORPAY_KEY_SECRET || "vo5IzsAxTQNPBr5zRcife0ke";
 
-    const razorpayOrderId = `order_rzp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    let razorpayOrderId = `order_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+    if (paymentMethod !== "COD" && razorpayKeyId && razorpayKeySecret) {
+      try {
+        const authHeader = `Basic ${Buffer.from(`${razorpayKeyId}:${razorpayKeySecret}`).toString("base64")}`;
+        const rzpRes = await fetch("https://api.razorpay.com/v1/orders", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: authHeader,
+          },
+          body: JSON.stringify({
+            amount: Math.round(calculatedTotal * 100), // amount in paise
+            currency: "INR",
+            receipt: `rcpt_${Date.now().toString().slice(-8)}`,
+            notes: {
+              customerEmail: userEmail || "customer@ecomweb.store",
+              phone,
+              address: address.slice(0, 80),
+            },
+          }),
+        });
+
+        if (rzpRes.ok) {
+          const rzpData = await rzpRes.json();
+          if (rzpData?.id) {
+            razorpayOrderId = rzpData.id;
+          }
+        } else {
+          const errText = await rzpRes.text();
+          console.warn("[RAZORPAY_API_WARN]:", errText);
+        }
+      } catch (rzpErr) {
+        console.warn("[RAZORPAY_FETCH_ERROR]:", rzpErr);
+      }
+    }
 
     // 4. Create Order in Database
     const order = await prisma.order.create({
