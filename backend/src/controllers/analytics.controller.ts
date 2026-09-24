@@ -112,7 +112,7 @@ export const getDashboardAnalytics = async (_req: AuthRequest, res: Response) =>
     }));
 
     // Format recent orders
-    const recentOrders = recentOrdersData.map((order) => ({
+    const recentOrders = recentOrdersData.map((order: any) => ({
       id: order.id,
       customerName: order.user?.name || "Customer",
       customerEmail: order.user?.email || "N/A",

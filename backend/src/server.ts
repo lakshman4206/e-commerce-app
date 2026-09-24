@@ -1,8 +1,8 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import express from "express";
-import cors from "cors";
+import express, { Request, Response } from "express";
+import cors, { CorsOptionsDelegate } from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 
@@ -28,19 +28,13 @@ const allowedOrigins = [
   "https://localhost:3000",
 ];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, or Stripe webhooks)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(null, true); // Allow all in dev/staging preview
-      }
-    },
-    credentials: true,
-  })
-);
+const corsOptionsDelegate: CorsOptionsDelegate = (req, callback) => {
+  const origin = (req as Request).headers.origin;
+  // Allow requests with no origin (mobile apps, curl, Stripe webhooks) and all known origins
+  callback(null, { origin: true, credentials: true });
+};
+
+app.use(cors(corsOptionsDelegate));
 
 // CRITICAL: Webhook routes must be registered before express.json()
 // to allow raw body buffer access for Stripe signature validation
@@ -51,7 +45,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health Check Endpoint
-app.get("/health", (_req, res) => {
+app.get("/health", (_req: Request, res: Response) => {
   res.json({
     status: "ok",
     service: "e-commerce-backend-api",

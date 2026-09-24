@@ -53,7 +53,7 @@ export const getProducts = async (req: Request, res: Response) => {
     });
 
     return res.json({
-      products: products.map((p) => ({
+      products: products.map((p: any) => ({
         ...p,
         price: Number(p.price),
       })),

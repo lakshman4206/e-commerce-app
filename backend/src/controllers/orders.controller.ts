@@ -24,10 +24,10 @@ export const getCustomerOrders = async (req: AuthRequest, res: Response) => {
     });
 
     return res.json({
-      orders: orders.map((o) => ({
+      orders: orders.map((o: any) => ({
         ...o,
         totalAmount: Number(o.totalAmount),
-        items: o.items.map((i) => ({
+        items: o.items.map((i: any) => ({
           ...i,
           priceAtPurchase: Number(i.priceAtPurchase),
         })),

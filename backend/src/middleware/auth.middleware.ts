@@ -1,4 +1,6 @@
 import { Request, Response, NextFunction } from "express";
+import { ParamsDictionary } from "express-serve-static-core";
+import { ParsedQs } from "qs";
 import jwt from "jsonwebtoken";
 
 export interface AuthUserPayload {
@@ -7,7 +9,7 @@ export interface AuthUserPayload {
   role: "ADMIN" | "CUSTOMER";
 }
 
-export interface AuthRequest extends Request {
+export interface AuthRequest extends Request<ParamsDictionary, any, any, ParsedQs> {
   user?: AuthUserPayload;
 }
 
