@@ -7,7 +7,7 @@ import { CartDrawer } from "@/components/storefront/cart-drawer";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Aesthete | Modern Architecture E-Commerce",
+  title: "E Kart | Modern E-Commerce Platform",
   description:
     "Production-ready, full-stack E-Commerce platform with Next.js App Router, Stripe Elements, NextAuth RBAC, and Prisma ORM.",
 };

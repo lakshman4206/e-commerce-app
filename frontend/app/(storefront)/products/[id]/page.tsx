@@ -18,12 +18,12 @@ export async function generateMetadata({
 
   if (!product) {
     return {
-      title: "Product Not Found | Aesthete",
+      title: "Product Not Found | E Kart",
     };
   }
 
   return {
-    title: `${product.title} | Aesthete Marketplace`,
+    title: `${product.title} | E Kart Marketplace`,
     description: product.description.slice(0, 160),
   };
 }

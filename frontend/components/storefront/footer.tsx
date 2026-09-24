@@ -53,13 +53,13 @@ export function Footer() {
       <div className="container mx-auto py-12 px-4 sm:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
-              Æ
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-primary to-orange-500 text-primary-foreground flex items-center justify-center font-black text-base shadow-sm">
+              E
             </div>
-            <span className="font-bold tracking-tight text-lg">AESTHETE</span>
+            <span className="font-extrabold tracking-tight text-lg">E Kart</span>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Curated objects engineered for modern living. Designed with intention, manufactured with precision.
+            Curated objects and lifestyle electronics engineered for modern living. Designed with intention, manufactured with precision.
           </p>
         </div>
 
@@ -77,7 +77,7 @@ export function Footer() {
 
         <div>
           <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-3">
-            Platform & Security
+            Platform &amp; Security
           </h4>
           <ul className="space-y-2 text-xs text-muted-foreground">
             <li><Link href="/admin" className="hover:text-foreground">Admin Control Hub</Link></li>
@@ -92,13 +92,13 @@ export function Footer() {
             System Architecture
           </h4>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Built with Next.js App Router, Prisma ORM, PostgreSQL, NextAuth v5 RBAC, and Stripe Elements.
+            Built with Next.js App Router, Prisma ORM, PostgreSQL, NextAuth v5 RBAC, and Stripe Gateway.
           </p>
         </div>
       </div>
 
       <div className="border-t border-border/40 py-6 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Aesthete Inc. All rights reserved. Production-grade architecture.
+        © {new Date().getFullYear()} E Kart Inc. All rights reserved. Production-grade architecture.
       </div>
     </footer>
   );

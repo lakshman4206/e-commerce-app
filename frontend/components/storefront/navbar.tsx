@@ -53,7 +53,7 @@ export function Navbar({ user }: NavbarProps) {
 
   return (
     <div className="sticky top-0 z-40 w-full border-b border-border/80 bg-background/90 backdrop-blur-md transition-all">
-      {/* 1. Top Alert / Promo Notification Bar (Amazon / Flipkart Style) */}
+      {/* 1. Top Alert / Promo Notification Bar */}
       <div className="bg-gradient-to-r from-primary/95 via-primary to-orange-600 text-primary-foreground py-1.5 px-4 text-center text-xs font-semibold tracking-wide flex items-center justify-center gap-2">
         <span className="flex items-center gap-1">
           <Zap className="w-3.5 h-3.5 fill-current animate-pulse" />
@@ -61,7 +61,7 @@ export function Navbar({ user }: NavbarProps) {
         </span>
         <span>Up to 50% OFF Top Electronics &amp; Fashion + FREE Express Shipping over $150</span>
         <span className="hidden md:inline-block font-mono bg-black/20 px-2 py-0.5 rounded text-[11px]">
-          CODE: AESTHETE50
+          CODE: EKART50
         </span>
       </div>
 
@@ -70,15 +70,15 @@ export function Navbar({ user }: NavbarProps) {
         {/* Brand Logo */}
         <div className="flex items-center gap-6 shrink-0">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-extrabold tracking-tighter text-lg shadow-sm group-hover:scale-105 transition-transform">
-              Æ
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-orange-500 flex items-center justify-center text-primary-foreground font-black tracking-tighter text-xl shadow-md group-hover:scale-105 transition-transform">
+              E
             </div>
             <div className="flex flex-col">
-              <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent">
-                AESTHETE
+              <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-foreground via-foreground/90 to-primary bg-clip-text text-transparent">
+                E Kart
               </span>
-              <span className="text-[9px] uppercase tracking-widest text-muted-foreground font-semibold -mt-1">
-                Marketplace
+              <span className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold -mt-1">
+                Storefront
               </span>
             </div>
           </Link>
