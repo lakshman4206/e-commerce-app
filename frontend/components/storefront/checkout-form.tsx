@@ -33,13 +33,19 @@ export function CheckoutForm() {
   const [mounted, setMounted] = useState(false);
 
   // 1. Delivery Details State (Indian Standard)
-  const [fullName, setFullName] = useState(() => session?.user?.name || "Customer");
+  const [fullName, setFullName] = useState("");
   const [streetAddress, setStreetAddress] = useState("SBI Colony, ATP");
   const [city, setCity] = useState("Anantapur");
   const [stateName, setStateName] = useState("Andhra Pradesh");
   const [postalCode, setPostalCode] = useState("515004");
-  const [country] = useState("India");
+  const [country, setCountry] = useState("India");
   const [phone, setPhone] = useState("8676886867");
+
+  useEffect(() => {
+    if (session?.user?.name && !fullName) {
+      setFullName(session.user.name);
+    }
+  }, [session, fullName]);
 
   // 2. Payment Method Selection (Razorpay or COD)
   const [paymentMethod, setPaymentMethod] = useState<"RAZORPAY" | "COD">("RAZORPAY");
