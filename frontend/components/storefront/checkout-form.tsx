@@ -24,14 +24,16 @@ import {
   Wallet,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export function CheckoutForm() {
   const router = useRouter();
+  const { data: session } = useSession();
   const { items, getSubtotal, clearCart } = useCartStore();
   const [mounted, setMounted] = useState(false);
 
   // 1. Delivery Details State (Indian Standard)
-  const [fullName, setFullName] = useState("Kadapala Lakshmana Murthy");
+  const [fullName, setFullName] = useState(() => session?.user?.name || "Customer");
   const [streetAddress, setStreetAddress] = useState("SBI Colony, ATP");
   const [city, setCity] = useState("Anantapur");
   const [stateName, setStateName] = useState("Andhra Pradesh");
@@ -156,20 +158,28 @@ export function CheckoutForm() {
       console.warn("[CHECKOUT_NOTICE]: Resilient fallback activated", e);
     }
 
-    // Save order details to localStorage for tracking & receipt display
+    // Save order details to user-specific storage for tracking & receipt display
     try {
-      localStorage.setItem(
-        "last_ecomweb_order",
-        JSON.stringify({
-          id: generatedOrderId,
-          address: fullFormattedAddress,
-          phone,
-          total,
-          items: items.length > 0 ? items : [{ id: "item_1", title: "E Com Web Package", quantity: 1, price: total }],
-          paymentMethod,
-          date: new Date().toISOString(),
-        })
-      );
+      const activeUserEmail = (session?.user?.email || "").toLowerCase().trim();
+      const orderRecord = {
+        id: generatedOrderId,
+        address: fullFormattedAddress,
+        phone,
+        total,
+        items: items.length > 0 ? items : [{ id: "item_1", title: "E Com Web Package", quantity: 1, price: total }],
+        paymentMethod,
+        date: new Date().toISOString(),
+        userEmail: activeUserEmail,
+      };
+
+      if (activeUserEmail) {
+        const storageKey = `ecomweb_orders_${activeUserEmail}`;
+        const existingList = JSON.parse(localStorage.getItem(storageKey) || "[]");
+        existingList.unshift(orderRecord);
+        localStorage.setItem(storageKey, JSON.stringify(existingList));
+      }
+
+      localStorage.setItem("last_ecomweb_order", JSON.stringify(orderRecord));
     } catch {}
 
     if (paymentMethod === "COD") {

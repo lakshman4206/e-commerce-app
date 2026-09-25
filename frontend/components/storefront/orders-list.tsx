@@ -53,7 +53,13 @@ interface Order {
   paymentId?: string;
 }
 
-export function OrdersList({ initialOrders = [] }: { initialOrders: any[] }) {
+export function OrdersList({
+  initialOrders = [],
+  userEmail = "",
+}: {
+  initialOrders: any[];
+  userEmail?: string;
+}) {
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [selectedOrderForCancel, setSelectedOrderForCancel] = useState<Order | null>(null);
   const [cancelReason, setCancelReason] = useState("Ordered by mistake / Accidental purchase");
@@ -61,10 +67,17 @@ export function OrdersList({ initialOrders = [] }: { initialOrders: any[] }) {
   const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    // Merge localStorage orders with database orders so user never loses order history
+    // Only load user-specific orders for this logged-in account
+    const cleanEmail = userEmail.toLowerCase().trim();
+
+    if (!cleanEmail) {
+      setOrders(initialOrders);
+      return;
+    }
+
     try {
-      const localListStr = localStorage.getItem("ecomweb_orders_list");
-      const lastOrderStr = localStorage.getItem("last_ecomweb_order");
+      const storageKey = `ecomweb_orders_${cleanEmail}`;
+      const localListStr = localStorage.getItem(storageKey);
 
       let merged: Order[] = [...initialOrders];
 
@@ -74,8 +87,8 @@ export function OrdersList({ initialOrders = [] }: { initialOrders: any[] }) {
           if (!merged.find((m) => m.id === lo.id)) {
             merged.push({
               id: lo.id,
-              createdAt: lo.date || new Date().toISOString(),
-              totalAmount: lo.total,
+              createdAt: lo.date || lo.createdAt || new Date().toISOString(),
+              totalAmount: lo.total || lo.totalAmount,
               status: lo.status || "PAID",
               address: lo.address,
               phone: lo.phone,
@@ -88,31 +101,14 @@ export function OrdersList({ initialOrders = [] }: { initialOrders: any[] }) {
             });
           }
         });
-      } else if (lastOrderStr) {
-        const lo = JSON.parse(lastOrderStr);
-        if (!merged.find((m) => m.id === lo.id)) {
-          merged.push({
-            id: lo.id,
-            createdAt: lo.date || new Date().toISOString(),
-            totalAmount: lo.total,
-            status: lo.status || "PAID",
-            address: lo.address,
-            phone: lo.phone,
-            items: lo.items || [],
-            refundId: lo.refundId,
-            refundStatus: lo.refundStatus,
-            refundReason: lo.refundReason,
-            paymentMethod: lo.paymentMethod,
-            paymentId: lo.paymentId,
-          });
-        }
       }
 
       setOrders(merged);
     } catch (err) {
       console.warn("[ORDERS_MERGE_WARN]:", err);
+      setOrders(initialOrders);
     }
-  }, [initialOrders]);
+  }, [initialOrders, userEmail]);
 
   const toggleExpand = (id: string) => {
     setExpandedOrders((prev) => ({ ...prev, [id]: !prev[id] }));

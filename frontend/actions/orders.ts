@@ -75,17 +75,29 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
 export async function getCustomerOrders() {
   const session = await auth();
 
-  if (!session?.user?.id && !session?.user?.email) {
+  const userEmail = session?.user?.email ? session.user.email.toLowerCase().trim() : null;
+  const userId = session?.user?.id || null;
+
+  if (!userId && !userEmail) {
+    return [];
+  }
+
+  const orConditions: any[] = [];
+  if (userId) {
+    orConditions.push({ userId });
+  }
+  if (userEmail) {
+    orConditions.push({ user: { email: userEmail } });
+  }
+
+  if (orConditions.length === 0) {
     return [];
   }
 
   try {
     const orders = await prisma.order.findMany({
       where: {
-        OR: [
-          session.user.id ? { userId: session.user.id } : {},
-          session.user.email ? { user: { email: session.user.email.toLowerCase() } } : {},
-        ],
+        OR: orConditions,
       },
       include: {
         items: {
