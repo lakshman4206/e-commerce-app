@@ -35,24 +35,20 @@ export const useCartStore = create<CartStore>()(
 
         if (cleanEmail === prevEmail) return;
 
-        // 1. Save current items to previous user storage
+        // If user logged out or no one is signed in, clear in-memory cart to 0
+        if (!cleanEmail) {
+          set({ items: [], currentUserEmail: "" });
+          return;
+        }
+
+        // When a user signs in, load their user-specific cart from localStorage
         if (typeof window !== "undefined") {
           try {
-            const currentItems = get().items;
-            const prevKey = prevEmail ? `ecomweb_cart_${prevEmail}` : "ecomweb_cart_guest";
-            localStorage.setItem(prevKey, JSON.stringify(currentItems));
-
-            // 2. Load target user's cart
-            const newKey = cleanEmail ? `ecomweb_cart_${cleanEmail}` : "ecomweb_cart_guest";
-            const savedCart = localStorage.getItem(newKey);
+            const userKey = `ecomweb_cart_${cleanEmail}`;
+            const savedCart = localStorage.getItem(userKey);
             if (savedCart) {
               const loadedItems = JSON.parse(savedCart);
               set({ items: loadedItems, currentUserEmail: cleanEmail });
-              return;
-            } else if (cleanEmail && currentItems.length > 0) {
-              // Migrate guest items to newly logged-in user
-              localStorage.setItem(newKey, JSON.stringify(currentItems));
-              set({ currentUserEmail: cleanEmail });
               return;
             }
           } catch (e) {
@@ -60,7 +56,7 @@ export const useCartStore = create<CartStore>()(
           }
         }
 
-        set({ items: cleanEmail ? [] : get().items, currentUserEmail: cleanEmail });
+        set({ items: [], currentUserEmail: cleanEmail });
       },
 
       addItem: (item, quantity = 1) => {
