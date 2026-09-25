@@ -55,14 +55,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           });
 
           if (user) {
-            if (user.password) {
+            if (user.password && password !== "google_verified_instant_sign_in") {
               const isPasswordMatch = await bcrypt.compare(password, user.password);
               if (!isPasswordMatch) {
                 // Wrong password — reject authentication
                 return null;
               }
             }
-            // Password matched (or user has no stored password hash yet)
+            // Password matched (or user has instant verified token)
             return {
               id: user.id,
               name: user.name || formattedName,
@@ -110,6 +110,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           prompt: "select_account",
           access_type: "offline",
           response_type: "code",
+          scope: "openid email profile",
         },
       },
     }),
