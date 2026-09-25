@@ -113,13 +113,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return true;
     },
     async redirect({ url, baseUrl }) {
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Return relative URLs directly so browser stays on current domain (Vercel / Localhost)
+      if (url.startsWith("/")) return url;
       try {
-        if (new URL(url).origin === baseUrl) return url;
-      } catch {
-        return baseUrl;
-      }
-      return baseUrl;
+        const parsed = new URL(url);
+        if (parsed.origin === baseUrl || parsed.hostname.includes("vercel.app") || parsed.hostname === "localhost") {
+          return url;
+        }
+      } catch {}
+      return "/products";
     },
     async jwt({ token, user, account, profile }) {
       // On first sign-in (credentials or OAuth)
