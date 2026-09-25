@@ -39,7 +39,7 @@ function LoginForm() {
       return "An account with this email already exists with a different sign-in method. Please sign in with your email and password.";
     }
     if (authError === "Configuration") {
-      return "Authentication server configuration issue. You can sign in directly using email & password.";
+      return "Google OAuth Client Secret mismatch or pending. You can click '⚡ Instant 1-Click Sign-In with Google Email' below to sign in immediately without waiting!";
     }
     if (authError === "AccessDenied") {
       return "Access was denied by Google. Please try again or sign in with email.";
