@@ -102,14 +102,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
     Google({
-      clientId:
-        process.env.AUTH_GOOGLE_ID ||
-        process.env.GOOGLE_CLIENT_ID ||
-        "760708631946-peljnu56oijdjc99180fub77e81p7oai.apps.googleusercontent.com",
-      clientSecret:
-        process.env.AUTH_GOOGLE_SECRET ||
-        process.env.GOOGLE_CLIENT_SECRET ||
-        "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w",
+      clientId: process.env.AUTH_GOOGLE_ID || process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.AUTH_GOOGLE_SECRET || process.env.GOOGLE_CLIENT_SECRET || "",
       allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
