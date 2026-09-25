@@ -28,14 +28,15 @@ interface NavbarProps {
 
 export function Navbar({ user }: NavbarProps) {
   const router = useRouter();
-  const { openCart, getTotalItems } = useCartStore();
+  const { openCart, getTotalItems, syncUserCart } = useCartStore();
   const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    syncUserCart(user?.email || null);
+  }, [user, syncUserCart]);
 
   const totalItems = mounted ? getTotalItems() : 0;
 

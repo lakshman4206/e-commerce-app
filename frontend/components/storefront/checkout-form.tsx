@@ -34,18 +34,43 @@ export function CheckoutForm() {
 
   // 1. Delivery Details State (Indian Standard)
   const [fullName, setFullName] = useState("");
-  const [streetAddress, setStreetAddress] = useState("SBI Colony, ATP");
-  const [city, setCity] = useState("Anantapur");
+  const [streetAddress, setStreetAddress] = useState("");
+  const [city, setCity] = useState("");
   const [stateName, setStateName] = useState("Andhra Pradesh");
-  const [postalCode, setPostalCode] = useState("515004");
+  const [postalCode, setPostalCode] = useState("");
   const [country, setCountry] = useState("India");
-  const [phone, setPhone] = useState("8676886867");
+  const [phone, setPhone] = useState("");
 
   useEffect(() => {
-    if (session?.user?.name && !fullName) {
-      setFullName(session.user.name);
+    const userEmail = (session?.user?.email || "").toLowerCase().trim();
+    if (typeof window !== "undefined") {
+      // 1. Load saved user address profile if available
+      if (userEmail) {
+        try {
+          const savedAddrStr = localStorage.getItem(`ecomweb_address_${userEmail}`);
+          if (savedAddrStr) {
+            const savedAddr = JSON.parse(savedAddrStr);
+            if (savedAddr.fullName) setFullName(savedAddr.fullName);
+            if (savedAddr.streetAddress) setStreetAddress(savedAddr.streetAddress);
+            if (savedAddr.city) setCity(savedAddr.city);
+            if (savedAddr.stateName) setStateName(savedAddr.stateName);
+            if (savedAddr.postalCode) setPostalCode(savedAddr.postalCode);
+            if (savedAddr.phone) setPhone(savedAddr.phone);
+            return;
+          }
+        } catch {}
+      }
+
+      // Default fallback initializations
+      if (session?.user?.name && !fullName) {
+        setFullName(session.user.name);
+      }
+      if (!streetAddress) setStreetAddress("SBI Colony, ATP");
+      if (!city) setCity("Anantapur");
+      if (!postalCode) setPostalCode("515004");
+      if (!phone) setPhone("8676886867");
     }
-  }, [session, fullName]);
+  }, [session]);
 
   // 2. Payment Method Selection (Razorpay or COD)
   const [paymentMethod, setPaymentMethod] = useState<"RAZORPAY" | "COD">("RAZORPAY");
@@ -183,6 +208,19 @@ export function CheckoutForm() {
         const existingList = JSON.parse(localStorage.getItem(storageKey) || "[]");
         existingList.unshift(orderRecord);
         localStorage.setItem(storageKey, JSON.stringify(existingList));
+
+        localStorage.setItem(
+          `ecomweb_address_${activeUserEmail}`,
+          JSON.stringify({
+            fullName,
+            streetAddress,
+            city,
+            stateName,
+            postalCode,
+            country,
+            phone,
+          })
+        );
       }
 
       localStorage.setItem("last_ecomweb_order", JSON.stringify(orderRecord));
