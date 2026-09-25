@@ -30,7 +30,7 @@ export default async function CheckoutPage() {
       <div className="space-y-2 mb-8">
         <h1 className="text-3xl font-extrabold tracking-tight">Express Checkout</h1>
         <p className="text-sm text-muted-foreground">
-          Confirm your destination and finalize payment through our verified Stripe gateway.
+          Confirm your destination and finalize payment through our verified Razorpay payment gateway.
         </p>
       </div>
 
