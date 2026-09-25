@@ -105,7 +105,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientId:
         process.env.AUTH_GOOGLE_ID ||
         process.env.GOOGLE_CLIENT_ID ||
-        "760708631946-6d2q9mpa8554lj62jj5f8l2gj73u66eh.apps.googleusercontent.com",
+        "760708631946-peljnu56oijdjc99180fub77e81p7oai.apps.googleusercontent.com",
       clientSecret:
         process.env.AUTH_GOOGLE_SECRET ||
         process.env.GOOGLE_CLIENT_SECRET ||
