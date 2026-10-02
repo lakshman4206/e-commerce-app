@@ -4,9 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
 import { useCartStore } from "@/store/use-cart-store";
-import { ShoppingBag, Check, Star, Zap } from "lucide-react";
+import { ShoppingBag, Check, Star, Zap, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { toggleWishlist } from "@/actions/wishlist";
+import { toast } from "sonner";
 
 interface ProductCardProps {
   product: {
@@ -22,11 +24,14 @@ interface ProductCardProps {
       slug: string;
     };
   };
+  initiallyWishlisted?: boolean;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, initiallyWishlisted = false }: ProductCardProps) {
   const { addItem, openCart } = useCartStore();
   const [added, setAdded] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(initiallyWishlisted);
+  const [isPending, startTransition] = useTransition();
 
   const isLowStock = product.stockQuantity > 0 && product.stockQuantity <= 5;
   const isOutOfStock = product.stockQuantity <= 0;
@@ -58,6 +63,27 @@ export function ProductCard({ product }: ProductCardProps) {
     openCart();
   };
 
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Optimistic UI update
+    const newState = !isWishlisted;
+    setIsWishlisted(newState);
+
+    startTransition(async () => {
+      try {
+        const result = await toggleWishlist(product.id);
+        setIsWishlisted(result.isWishlisted);
+        toast(result.isWishlisted ? "❤️ Saved to wishlist!" : "Removed from wishlist.");
+      } catch (err: any) {
+        // Revert optimistic update on error
+        setIsWishlisted(!newState);
+        toast.error(err.message || "Please sign in to save items.");
+      }
+    });
+  };
+
   return (
     <div className="group relative rounded-3xl border border-border bg-card p-3.5 shadow-xs hover:shadow-2xl hover:border-primary/40 transition-all duration-300 flex flex-col justify-between">
       <Link href={`/products/${product.id}`} className="block">
@@ -70,6 +96,22 @@ export function ProductCard({ product }: ProductCardProps) {
             className="object-cover transition-transform duration-500 group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
           />
+
+          {/* Wishlist Heart Button */}
+          <button
+            onClick={handleWishlistToggle}
+            disabled={isPending}
+            className={`absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-background/90 backdrop-blur-md shadow-md flex items-center justify-center border border-border/60 transition-all ${
+              isWishlisted
+                ? "text-red-500 border-red-200 bg-red-50 dark:bg-red-950/40"
+                : "text-muted-foreground hover:text-red-500"
+            }`}
+            title={isWishlisted ? "Remove from wishlist" : "Save to wishlist"}
+          >
+            <Heart
+              className={`w-4 h-4 transition-all ${isWishlisted ? "fill-red-500 text-red-500 scale-110" : ""}`}
+            />
+          </button>
 
           {/* Badges */}
           <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">

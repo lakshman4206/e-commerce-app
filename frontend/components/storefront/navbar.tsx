@@ -169,6 +169,15 @@ export function Navbar({ user }: NavbarProps) {
 
           {/* Wishlist Link */}
           <Link
+            href="/wishlist"
+            className="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl border border-border/60 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 hover:border-red-200 transition"
+            title="My Wishlist"
+          >
+            <Heart className="w-4 h-4" />
+          </Link>
+
+          {/* Track Orders Link */}
+          <Link
             href="/orders"
             className="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl border border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted transition"
             title="Track Orders"

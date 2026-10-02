@@ -83,10 +83,15 @@ export const login = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ error: "Invalid email or password." });
     }
 
+    if (!user.password) {
+      return res.status(401).json({ error: "This account uses social sign-in. Please log in with Google." });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ error: "Invalid email or password." });
     }
+
 
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },

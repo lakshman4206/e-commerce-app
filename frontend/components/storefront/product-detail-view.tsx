@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { toggleWishlist } from "@/actions/wishlist";
 
 interface ProductDetailViewProps {
   product: {
@@ -38,18 +39,20 @@ interface ProductDetailViewProps {
       slug: string;
     } | null;
   };
+  initiallyWishlisted?: boolean;
 }
 
-export function ProductDetailView({ product }: ProductDetailViewProps) {
+export function ProductDetailView({ product, initiallyWishlisted = false }: ProductDetailViewProps) {
   const router = useRouter();
   const { addItem, openCart } = useCartStore();
+  const [isPendingWishlist, startWishlistTransition] = useTransition();
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState(0);
   const [selectedSize, setSelectedSize] = useState(0);
   const [pincode, setPincode] = useState("");
   const [deliveryStatus, setDeliveryStatus] = useState<string | null>(null);
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(initiallyWishlisted);
   const [added, setAdded] = useState(false);
 
   const images = product.images && product.images.length > 0
@@ -180,12 +183,27 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
             <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
               <button
                 onClick={() => {
-                  setIsWishlisted(!isWishlisted);
-                  toast(isWishlisted ? "Removed from Wishlist" : "Saved to Wishlist!");
+                  const newState = !isWishlisted;
+                  setIsWishlisted(newState);
+                  startWishlistTransition(async () => {
+                    try {
+                      const result = await toggleWishlist(product.id);
+                      setIsWishlisted(result.isWishlisted);
+                      toast(result.isWishlisted ? "❤️ Saved to wishlist!" : "Removed from wishlist.");
+                    } catch (err: any) {
+                      setIsWishlisted(!newState);
+                      toast.error(err.message || "Please sign in to save items.");
+                    }
+                  });
                 }}
-                className="w-10 h-10 rounded-full bg-background/90 backdrop-blur-md shadow-md flex items-center justify-center text-muted-foreground hover:text-red-500 transition-colors border border-border/60"
+                disabled={isPendingWishlist}
+                className={`w-10 h-10 rounded-full bg-background/90 backdrop-blur-md shadow-md flex items-center justify-center border border-border/60 transition-all ${
+                  isWishlisted
+                    ? "text-red-500 border-red-200 bg-red-50 dark:bg-red-950/40"
+                    : "text-muted-foreground hover:text-red-500"
+                }`}
               >
-                <Heart className={`w-5 h-5 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
+                <Heart className={`w-5 h-5 transition-all ${isWishlisted ? "fill-red-500 text-red-500 scale-110" : ""}`} />
               </button>
               <button
                 onClick={() => {
